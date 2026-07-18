@@ -15,7 +15,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // Allows all paths
-                        .allowedOrigins("https://vercel.app") // Your Vercel frontend
+                        .allowedOrigins("https://student-job-internship-matching-platform-eav7imjrl.vercel.app/","https://student-job-internship-matching-pla.vercel.app/login")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
