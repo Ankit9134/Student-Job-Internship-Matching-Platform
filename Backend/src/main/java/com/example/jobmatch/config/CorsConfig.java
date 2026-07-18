@@ -10,7 +10,7 @@ import org.springframework.web.cors.UrlCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-public class SecurityConfig {
+public class CorsConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
