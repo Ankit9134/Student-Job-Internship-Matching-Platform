@@ -10,6 +10,12 @@
     <p class="text-sm text-slate-500 ml-12">Track the status of roles you've marked as applied.</p>
   </div>
 
+  <!-- Error -->
+  <div *ngIf="error" class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600">
+    <lucide-icon [img]="AlertCircle" [size]="18" class="shrink-0 text-red-500"></lucide-icon>
+    <p class="font-semibold">{{ error }}</p>
+  </div>
+
   <!-- Loading Skeleton -->
   <ng-container *ngIf="loading">
     <!-- Stats skeleton -->

@@ -54,6 +54,14 @@ public class AuthController {
         return new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getId(), user.getStudentId());
     }
 
+    @GetMapping("/me")
+    public AuthResponse me(org.springframework.security.core.Authentication auth) {
+        User user = userRepo.findByEmail(auth.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not found"));
+        String token = jwtUtil.generate(user.getEmail(), user.getRole().name());
+        return new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getId(), user.getStudentId());
+    }
+
     // ---- DTOs ----
 
     @Getter @Setter

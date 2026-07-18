@@ -42,6 +42,12 @@ export class AuthService {
     );
   }
 
+  me(): Observable<AuthResponse> {
+    return this.http.get<AuthResponse>(`${this.base}/me`).pipe(
+      tap(res => this.store(res))
+    );
+  }
+
   private store(res: AuthResponse): void {
     localStorage.setItem('token', res.token);
     localStorage.setItem('role', res.role);

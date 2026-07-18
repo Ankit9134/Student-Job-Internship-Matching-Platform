@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { MatchService } from '../../services/match.service';
 import { ApplicationService } from '../../services/application.service';
 import { StudentService } from '../../services/student.service';
+import { AuthService } from '../../services/auth.service';
 import { MatchCardComponent } from '../match-card/match-card.component';
 import { MatchCard } from '../../models/match.model';
 import { LucideAngularModule, Filter, TrendingUp, Clock, Search, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-angular';
@@ -22,6 +23,8 @@ export class MatchesComponent implements OnInit {
   private applicationService = inject(ApplicationService);
   private studentService = inject(StudentService);
 
+  private authService = inject(AuthService);
+
   readonly FilterIcon = Filter;
   readonly TrendingUpIcon = TrendingUp;
   readonly ClockIcon = Clock;
@@ -30,7 +33,7 @@ export class MatchesComponent implements OnInit {
   readonly ChevronLeftIcon = ChevronLeft;
   readonly ChevronRightIcon = ChevronRight;
 
-  studentId = this.studentService.getSavedStudentId() ?? 1;
+  studentId: number | null = null;
 
   matches: MatchCard[] = [];
   appliedListingIds = new Set<number>();
@@ -52,36 +55,43 @@ export class MatchesComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    this.matchService.getMatches(this.studentId, {}, 0, this.pageSize, this.sort).subscribe({
-      next: matches => {
-        this.matches = matches.content;
-        this.totalPages = matches.totalPages;
-        this.loading = false;
-      },
-      error: err => {
-        this.error = 'Could not load matches: ' + (err?.error?.message || 'unknown error');
-        this.loading = false;
-      }
-    });
+    this.studentId = this.studentService.getSavedStudentId();
 
-    this.applicationService.listForStudent(this.studentId).pipe(catchError(() => of([]))).subscribe(applied => {
-      this.appliedListingIds = new Set(applied.map((a: any) => a.listingId));
-    });
+    const load = (id: number) => {
+      this.studentId = id;
+      this.matchService.getMatches(id, {}, 0, this.pageSize, this.sort).subscribe({
+        next: res => { this.matches = res.content; this.totalPages = res.totalPages; this.loading = false; },
+        error: err => { this.error = 'Could not load matches: ' + (err?.error?.message || 'unknown error'); this.loading = false; }
+      });
+      this.applicationService.listForStudent(id).pipe(catchError(() => of([]))).subscribe(applied => {
+        this.appliedListingIds = new Set(applied.map((a: any) => a.listingId));
+      });
+    };
+
+    if (this.studentId) {
+      load(this.studentId);
+    } else {
+      this.authService.me().subscribe({
+        next: res => {
+          if (res.studentId) { load(res.studentId); }
+          else { this.error = 'Please save your profile first.'; this.loading = false; }
+        },
+        error: () => { this.error = 'Please save your profile first.'; this.loading = false; }
+      });
+    }
 
     this.filterForm.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)))
-      .subscribe(() => {
-        this.page = 0;
-        this.fetchMatches();
-      });
+      .subscribe(() => { this.page = 0; this.fetchMatches(); });
   }
 
   fetchMatches(): void {
+    if (!this.studentId) return;
     this.loading = true;
     this.error = '';
     const filters = this.filterForm.value as any;
 
-    this.matchService.getMatches(this.studentId, filters, this.page, this.pageSize, this.sort).subscribe({
+    this.matchService.getMatches(this.studentId!, filters, this.page, this.pageSize, this.sort).subscribe({
       next: res => {
         this.matches = res.content;
         this.totalPages = res.totalPages;
@@ -95,12 +105,13 @@ export class MatchesComponent implements OnInit {
   }
 
   private loadApplied(): void {
+    if (!this.studentId) return;
     this.applicationService.listForStudent(this.studentId).subscribe(apps => {
       this.appliedListingIds = new Set(apps.map(a => a.listingId));
     });
   }
   onApply(listingId: number): void {
-    this.applicationService.markApplied(this.studentId, listingId).subscribe({
+    this.applicationService.markApplied(this.studentId!, listingId).subscribe({
       next: () => this.appliedListingIds.add(listingId),
       error: () => { /* already applied or listing unavailable - no-op for MVP */ }
     });

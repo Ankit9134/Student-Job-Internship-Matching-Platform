@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApplicationService } from '../../services/application.service';
 import { StudentService } from '../../services/student.service';
+import { AuthService } from '../../services/auth.service';
 import { ApplicationRecord } from '../../models/match.model';
 import { ApplicationStatus } from '../../models/student.model';
 import { LucideAngularModule, ClipboardList, CheckCircle, XCircle, Mic, Package, AlertCircle } from 'lucide-angular';
@@ -13,7 +14,8 @@ import { LucideAngularModule, ClipboardList, CheckCircle, XCircle, Mic, Package,
   templateUrl: './applications.component.html',
 })
 export class ApplicationsComponent implements OnInit {
-  studentId: number;
+  studentId: number | null = null;
+  error = '';
 
   applications: ApplicationRecord[] = [];
   loading = true;
@@ -26,15 +28,25 @@ export class ApplicationsComponent implements OnInit {
   readonly Package = Package;
   readonly AlertCircle = AlertCircle;
 
-  constructor(private applicationService: ApplicationService, private studentService: StudentService) {
-    this.studentId = this.studentService.getSavedStudentId() ?? 1;
-  }
+  constructor(private applicationService: ApplicationService, private studentService: StudentService, private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.load();
+    this.studentId = this.studentService.getSavedStudentId();
+    if (this.studentId) {
+      this.load();
+    } else {
+      this.authService.me().subscribe({
+        next: res => {
+          if (res.studentId) { this.studentId = res.studentId; this.load(); }
+          else { this.error = 'Please save your profile first.'; this.loading = false; }
+        },
+        error: () => { this.error = 'Please save your profile first.'; this.loading = false; }
+      });
+    }
   }
 
   load(): void {
+    if (!this.studentId) return;
     this.loading = true;
     this.applicationService.listForStudent(this.studentId).subscribe({
       next: apps => {
