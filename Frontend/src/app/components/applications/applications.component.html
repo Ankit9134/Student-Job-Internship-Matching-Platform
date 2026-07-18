@@ -1,0 +1,30 @@
+<h2>My Applications</h2>
+
+<p *ngIf="loading" class="status">Loading...</p>
+<p *ngIf="!loading && applications.length === 0" class="status">
+  You haven't marked any listings as applied yet — do that from the Matches tab.
+</p>
+
+<table class="applications-table" *ngIf="!loading && applications.length > 0">
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Company</th>
+      <th>Applied</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let app of applications">
+      <td>{{ app.listingTitle }}</td>
+      <td>{{ app.companyName }}</td>
+      <td>{{ app.appliedAt | date:'mediumDate' }}</td>
+      <td>
+        <select [class]="statusClass(app.status)" [value]="app.status"
+                (change)="updateStatus(app, $any($event.target).value)">
+          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+        </select>
+      </td>
+    </tr>
+  </tbody>
+</table>

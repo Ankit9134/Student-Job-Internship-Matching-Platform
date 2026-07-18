@@ -1,0 +1,44 @@
+<h2>Your Matches</h2>
+
+<form [formGroup]="filterForm" class="filter-bar">
+  <input type="text" placeholder="Role (e.g. frontend)" formControlName="role" />
+  <input type="text" placeholder="Location" formControlName="location" />
+  <select formControlName="workMode">
+    <option value="">Any work mode</option>
+    <option value="REMOTE">Remote</option>
+    <option value="ONSITE">Onsite</option>
+    <option value="HYBRID">Hybrid</option>
+  </select>
+  <select formControlName="sponsorshipNeeded">
+    <option [ngValue]="null">Any sponsorship</option>
+    <option [ngValue]="true">Sponsorship required</option>
+    <option [ngValue]="false">No sponsorship needed</option>
+  </select>
+</form>
+
+<div class="sort-bar">
+  <span>Sort by:</span>
+  <button type="button" [class.active]="sort === 'score'" (click)="setSort('score')">Match score</button>
+  <button type="button" [class.active]="sort === 'recent'" (click)="setSort('recent')">Most recent</button>
+</div>
+
+<p *ngIf="loading" class="status">Loading matches...</p>
+<p *ngIf="error" class="status error">{{ error }}</p>
+<p *ngIf="!loading && !error && matches.length === 0" class="status">
+  No listings match your current filters — try widening them.
+</p>
+
+<div class="results" *ngIf="!loading">
+  <app-match-card
+    *ngFor="let match of matches"
+    [match]="match"
+    [alreadyApplied]="appliedListingIds.has(match.listingId)"
+    (applyClicked)="onApply($event)">
+  </app-match-card>
+</div>
+
+<div class="pagination" *ngIf="totalPages > 1">
+  <button (click)="prevPage()" [disabled]="page === 0">Previous</button>
+  <span>Page {{ page + 1 }} of {{ totalPages }}</span>
+  <button (click)="nextPage()" [disabled]="page + 1 >= totalPages">Next</button>
+</div>

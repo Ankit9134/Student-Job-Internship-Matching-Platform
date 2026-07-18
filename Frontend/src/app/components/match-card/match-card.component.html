@@ -1,0 +1,46 @@
+<div class="card" [class.high]="scoreTier() === 'high'" [class.mid]="scoreTier() === 'mid'" [class.low]="scoreTier() === 'low'">
+
+  <div class="card-header">
+    <div>
+      <h3>{{ match.title }}</h3>
+      <p class="company">{{ match.company }}</p>
+    </div>
+    <div class="score-badge" [title]="match.score + '% match'">
+      {{ match.score | matchScore:'percent' }}
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <span class="tag">{{ match.location || 'Location TBD' }}</span>
+    <span class="tag">{{ match.workMode }}</span>
+    <span class="tag">{{ match.roleType }}</span>
+    <span class="tag" [class.sponsor-yes]="match.sponsorshipOffered">
+      {{ match.sponsorshipOffered ? 'Sponsorship offered' : 'No sponsorship' }}
+    </span>
+  </div>
+
+  <div class="stars">{{ match.score | matchScore:'stars' }} <span class="score-label">{{ match.score | matchScore:'label' }}</span></div>
+
+  <button class="explain-toggle" type="button" (click)="toggleBreakdown()">
+    {{ showBreakdown ? 'Hide match details' : 'Why did this match?' }}
+  </button>
+
+  <div class="breakdown" *ngIf="showBreakdown">
+    <div class="breakdown-row" *ngIf="match.breakdown.matchedSkills.length">
+      <strong>Matched on:</strong> {{ match.breakdown.matchedSkills.join(', ') }}
+    </div>
+    <div class="breakdown-row" *ngIf="match.breakdown.missingSkills.length">
+      <strong>Missing:</strong> {{ match.breakdown.missingSkills.join(', ') }}
+    </div>
+    <div class="breakdown-row">
+      <strong>GPA fit:</strong> {{ match.breakdown.gpaScore }}%
+      <strong class="ml">Sponsorship fit:</strong> {{ match.breakdown.authScore }}%
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="apply-btn" type="button" [disabled]="alreadyApplied" (click)="onApply()">
+      {{ alreadyApplied ? 'Applied' : 'Mark as Applied' }}
+    </button>
+  </div>
+</div>
