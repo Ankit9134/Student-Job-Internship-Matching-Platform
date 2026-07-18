@@ -35,4 +35,8 @@ export class StudentService {
     formData.append('file', file);
     return this.http.post<StudentProfileResponse>(`${this.base}/${studentId}/resume`, formData);
   }
+
+  getResumeViewUrl(studentId: number): string {
+    return `${this.base}/${studentId}/resume`;
+  }
 }

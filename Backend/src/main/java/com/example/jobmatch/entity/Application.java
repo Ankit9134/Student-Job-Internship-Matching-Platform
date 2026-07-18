@@ -21,9 +21,16 @@ public class Application {
     @Column(name = "listing_id", nullable = false)
     private Long listingId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "listing_id", insertable = false, updatable = false)
+    private Listing listing;
+
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
 
     @Column(name = "applied_at")
     private Instant appliedAt;
+
+    @Column(length = 500)
+    private String notes;
 }

@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.matching")
 @Getter @Setter
 public class MatchingWeightsConfig {
-    /** Relative weight of skill overlap in the final score. Defaults sum to 1.0. */
-    private double weightSkill = 0.6;
-    private double weightGpa = 0.2;
-    private double weightAuth = 0.2;
+    private double weightSkill = 0.60;
+    private double weightGpa   = 0.15;
+    private double weightAuth  = 0.15;
+    private double weightMode  = 0.10;
 }

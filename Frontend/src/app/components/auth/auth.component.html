@@ -1,0 +1,121 @@
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-slate-100 flex items-center justify-center px-4 py-10">
+  <div class="w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-2xl shadow-lg mb-4">
+        <svg lucideGraduationCap class="text-white w-7 h-7"></svg>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900">JobMatch</h1>
+      <p class="text-sm text-slate-500 mt-1">Find your perfect role or top talent</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 sm:p-8">
+
+      <!-- Mode Toggle -->
+      <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+        <button type="button" (click)="switchMode('login')"
+                [class]="mode==='login' ? 'flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-slate-900 shadow-sm transition' : 'flex-1 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition'">
+          Sign In
+        </button>
+        <button type="button" (click)="switchMode('signup')"
+                [class]="mode==='signup' ? 'flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-slate-900 shadow-sm transition' : 'flex-1 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition'">
+          Create Account
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+
+        <!-- Full Name -->
+        <div *ngIf="mode==='signup'" class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold text-slate-700">Full Name</label>
+          <div class="relative">
+            <svg lucideUser class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></svg>
+            <input formControlName="fullName" type="text" placeholder="Ankit Pal"
+                   class="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+          </div>
+          <small class="text-red-500 text-xs flex items-center gap-1"
+                 *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
+            <svg lucideAlertCircle class="w-3 h-3"></svg> Full name is required.
+          </small>
+        </div>
+
+        <!-- Email -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold text-slate-700">Email</label>
+          <div class="relative">
+            <svg lucideMail class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></svg>
+            <input formControlName="email" type="email" placeholder="you@university.edu"
+                   class="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+          </div>
+          <small class="text-red-500 text-xs flex items-center gap-1"
+                 *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+            <svg lucideAlertCircle class="w-3 h-3"></svg> Valid email is required.
+          </small>
+        </div>
+
+        <!-- Password -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold text-slate-700">Password</label>
+          <div class="relative">
+            <svg lucideLock class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></svg>
+            <input formControlName="password" type="password" placeholder="Min 6 characters"
+                   class="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+          </div>
+          <small class="text-red-500 text-xs flex items-center gap-1"
+                 *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+            <svg lucideAlertCircle class="w-3 h-3"></svg> Password must be at least 6 characters.
+          </small>
+        </div>
+
+        <!-- Role -->
+        <div *ngIf="mode==='signup'" class="flex flex-col gap-2">
+          <label class="text-sm font-semibold text-slate-700">I am a...</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label [class]="form.get('role')?.value==='STUDENT'
+              ? 'flex items-center gap-2 p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50 cursor-pointer'
+              : 'flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer transition'">
+              <input type="radio" formControlName="role" value="STUDENT" class="accent-indigo-600 shrink-0" />
+              <div>
+                <div class="flex items-center gap-1">
+                  <svg lucideUser class="w-3.5 h-3.5 text-indigo-600"></svg>
+                  <p class="text-sm font-semibold text-slate-800">Student</p>
+                </div>
+                <p class="text-xs text-slate-500">Find jobs</p>
+              </div>
+            </label>
+            <label [class]="form.get('role')?.value==='RECRUITER'
+              ? 'flex items-center gap-2 p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50 cursor-pointer'
+              : 'flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer transition'">
+              <input type="radio" formControlName="role" value="RECRUITER" class="accent-indigo-600 shrink-0" />
+              <div>
+                <div class="flex items-center gap-1">
+                  <svg lucideBriefcase class="w-3.5 h-3.5 text-indigo-600"></svg>
+                  <p class="text-sm font-semibold text-slate-800">Recruiter</p>
+                </div>
+                <p class="text-xs text-slate-500">Post roles</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error" class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+          <svg lucideAlertCircle class="w-4 h-4 shrink-0"></svg>
+          {{ error }}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" [disabled]="loading"
+                class="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition shadow-sm mt-1">
+          <svg *ngIf="mode==='login'" lucideLogIn class="w-4 h-4"></svg>
+          <svg *ngIf="mode==='signup'" lucideUserPlus class="w-4 h-4"></svg>
+          {{ loading ? 'Please wait...' : (mode==='login' ? 'Sign In' : 'Create Account') }}
+        </button>
+
+      </form>
+    </div>
+    <p class="text-center text-xs text-slate-400 mt-5">JobMatch — AI-powered job matching for students</p>
+  </div>
+</div>

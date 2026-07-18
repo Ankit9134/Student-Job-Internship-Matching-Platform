@@ -4,19 +4,27 @@ import { ApplicationService } from '../../services/application.service';
 import { StudentService } from '../../services/student.service';
 import { ApplicationRecord } from '../../models/match.model';
 import { ApplicationStatus } from '../../models/student.model';
+import { LucideAngularModule, ClipboardList, CheckCircle, XCircle, Mic, Package, AlertCircle } from 'lucide-angular';
 
 @Component({
   selector: 'app-applications',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './applications.component.html',
 })
 export class ApplicationsComponent implements OnInit {
   studentId: number;
 
   applications: ApplicationRecord[] = [];
-  loading = false;
+  loading = true;
   statuses: ApplicationStatus[] = ['APPLIED', 'INTERVIEWING', 'OFFER', 'REJECTED'];
+
+  readonly ClipboardList = ClipboardList;
+  readonly CheckCircle = CheckCircle;
+  readonly XCircle = XCircle;
+  readonly Mic = Mic;
+  readonly Package = Package;
+  readonly AlertCircle = AlertCircle;
 
   constructor(private applicationService: ApplicationService, private studentService: StudentService) {
     this.studentId = this.studentService.getSavedStudentId() ?? 1;

@@ -86,12 +86,23 @@ public class MatchQueryService {
             .collect(Collectors.toMap(Student::getId, s -> s));
 
         List<StudentMatchResponse> content = results.getContent().stream()
-            .map(mr -> StudentMatchResponse.builder()
-                .studentId(mr.getStudentId())
-                .studentName(studentMap.containsKey(mr.getStudentId()) ? studentMap.get(mr.getStudentId()).getFullName() : "Unknown")
-                .score(mr.getScore())
-                .breakdown(toBreakdown(mr))
-                .build())
+            .map(mr -> {
+                Student s = studentMap.get(mr.getStudentId());
+                return StudentMatchResponse.builder()
+                    .studentId(mr.getStudentId())
+                    .studentName(s != null ? s.getFullName() : "Unknown")
+                    .email(s != null ? s.getEmail() : null)
+                    .gpa(s != null ? s.getGpa() : null)
+                    .gradYear(s != null ? s.getGradYear() : null)
+                    .workAuthStatus(s != null && s.getWorkAuthStatus() != null ? s.getWorkAuthStatus().name() : null)
+                    .needsSponsorship(s != null && s.isNeedsSponsorship())
+                    .preferredLocations(s != null ? s.getPreferredLocations() : null)
+                    .preferredWorkMode(s != null && s.getPreferredWorkMode() != null ? s.getPreferredWorkMode().name() : null)
+                    .hasResume(s != null && s.getResumeUrl() != null)
+                    .score(mr.getScore())
+                    .breakdown(toBreakdown(mr))
+                    .build();
+            })
             .collect(Collectors.toList());
 
         return PagedResponse.<StudentMatchResponse>builder()
@@ -123,6 +134,7 @@ public class MatchQueryService {
             .skillScore(mr.getSkillScore())
             .gpaScore(mr.getGpaScore())
             .authScore(mr.getAuthScore())
+            .modeScore(mr.getModeScore())
             .matchedSkills(splitCsv(mr.getMatchedSkills()))
             .missingSkills(splitCsv(mr.getMissingSkills()))
             .build();

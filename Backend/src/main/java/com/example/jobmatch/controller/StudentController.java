@@ -11,8 +11,16 @@ import com.example.jobmatch.service.MatchingService;
 import com.example.jobmatch.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/students")
@@ -27,7 +35,7 @@ public class StudentController {
     @PostMapping
     public StudentProfileResponse create(@Valid @RequestBody StudentProfileRequest req) {
         StudentProfileResponse created = studentService.createOrUpdate(null, req);
-        matchingService.recomputeForStudent(created.getId()); // populate match_results immediately
+        matchingService.recomputeForStudent(created.getId());
         return created;
     }
 
@@ -39,7 +47,7 @@ public class StudentController {
     @PutMapping("/{id}/profile")
     public StudentProfileResponse updateProfile(@PathVariable Long id, @Valid @RequestBody StudentProfileRequest req) {
         StudentProfileResponse updated = studentService.createOrUpdate(id, req);
-        matchingService.recomputeForStudent(id); // recompute is the whole point - no manual trigger needed
+        matchingService.recomputeForStudent(id);
         return updated;
     }
 
@@ -68,5 +76,26 @@ public class StudentController {
     @GetMapping("/{id}/matches/{listingId}/explain")
     public MatchCardResponse explainMatch(@PathVariable Long id, @PathVariable Long listingId) {
         return matchQueryService.getExplain(id, listingId);
+    }
+
+    @GetMapping("/{id}/resume")
+    public ResponseEntity<Resource> downloadResume(@PathVariable Long id) {
+        StudentProfileResponse profile = studentService.getById(id);
+        if (profile.getResumeUrl() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            Path filePath = Paths.get(profile.getResumeUrl()).toAbsolutePath().normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists()) return ResponseEntity.notFound().build();
+            String filename = filePath.getFileName().toString();
+            String contentType = filename.endsWith(".pdf") ? "application/pdf" : "application/octet-stream";
+            return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

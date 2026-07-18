@@ -15,6 +15,7 @@ public class ApplicationDtos {
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class UpdateStatusRequest {
         private ApplicationStatus status;
+        private String notes;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -25,5 +26,6 @@ public class ApplicationDtos {
         private String companyName;
         private ApplicationStatus status;
         private Instant appliedAt;
+        private String notes;
     }
 }

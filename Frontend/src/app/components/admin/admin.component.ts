@@ -1,16 +1,18 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { ListingService } from '../../services/listing.service';
 import { SkillService } from '../../services/skill.service';
 import { Listing } from '../../models/listing.model';
 import { Skill } from '../../models/student.model';
 import { PagedResponse } from '../../models/match.model';
+import { LucideAngularModule, Plus, Pencil, Users, X, Briefcase, MapPin, Building2, GraduationCap, CheckCircle, XCircle, ClipboardList, Trash2, AlertTriangle, Loader } from 'lucide-angular';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
@@ -20,18 +22,42 @@ export class AdminComponent implements OnInit {
 
   listings: Listing[] = [];
   allSkills: Skill[] = [];
-  loadingListings = false;
+  loadingListings = true;
   showForm = false;
   saving = false;
-  saveMessage = '';
   editingId: number | null = null;
+  deletingId: number | null = null;
+  confirmDeleteId: number | null = null;
+
+  // Toast
+  toast: { message: string; type: 'success' | 'error' } | null = null;
+  private toastTimer: any;
 
   // Recruiter view
   selectedListing: Listing | null = null;
   topStudents: any[] = [];
   loadingStudents = false;
 
-  // Skill weights: skillId -> 1 (nice) or 2 (required)
+  selectedStudent: any = null;
+  applicantCounts: Record<number, number> = {};
+
+  readonly PlusIcon = Plus;
+  readonly PencilIcon = Pencil;
+  readonly UsersIcon = Users;
+  readonly XIcon = X;
+  readonly BriefcaseIcon = Briefcase;
+  readonly MapPinIcon = MapPin;
+  readonly Building2Icon = Building2;
+  readonly GraduationCapIcon = GraduationCap;
+  readonly CheckCircleIcon = CheckCircle;
+  readonly XCircleIcon = XCircle;
+  readonly ClipboardListIcon = ClipboardList;
+  readonly Trash2Icon = Trash2;
+  readonly AlertTriangleIcon = AlertTriangle;
+  readonly LoaderIcon = Loader;
+
+  @ViewChild('formSection') formSection!: ElementRef;
+
   skillWeights: Record<number, number> = {};
 
   listingForm = this.fb.group({
@@ -52,10 +78,26 @@ export class AdminComponent implements OnInit {
 
   loadListings(): void {
     this.loadingListings = true;
-    this.listingService.browse().subscribe({
-      next: l => { this.listings = l; this.loadingListings = false; },
-      error: () => (this.loadingListings = false)
+    forkJoin({
+      listings: this.listingService.browse(),
+      counts: this.listingService.getAllApplicantCounts()
+    }).subscribe({
+      next: ({ listings, counts }) => {
+        this.listings = listings;
+        this.applicantCounts = counts;
+        this.loadingListings = false;
+      },
+      error: () => {
+        this.loadingListings = false;
+        this.showToast('Failed to load listings', 'error');
+      }
     });
+  }
+
+  showToast(message: string, type: 'success' | 'error'): void {
+    clearTimeout(this.toastTimer);
+    this.toast = { message, type };
+    this.toastTimer = setTimeout(() => (this.toast = null), 3000);
   }
 
   openCreate(): void {
@@ -63,7 +105,6 @@ export class AdminComponent implements OnInit {
     this.skillWeights = {};
     this.listingForm.reset({ workMode: 'REMOTE', roleType: 'FULL_TIME', sponsorshipOffered: false });
     this.showForm = true;
-    this.saveMessage = '';
   }
 
   openEdit(listing: Listing): void {
@@ -82,7 +123,32 @@ export class AdminComponent implements OnInit {
       roleType: listing.roleType,
     });
     this.showForm = true;
-    this.saveMessage = '';
+    setTimeout(() => this.formSection?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+
+  confirmDelete(id: number): void {
+    this.confirmDeleteId = id;
+  }
+
+  cancelDelete(): void {
+    this.confirmDeleteId = null;
+  }
+
+  deleteListing(id: number): void {
+    this.deletingId = id;
+    this.confirmDeleteId = null;
+    this.listingService.delete(id).subscribe({
+      next: () => {
+        this.listings = this.listings.filter(l => l.id !== id);
+        if (this.selectedListing?.id === id) this.closeStudents();
+        this.deletingId = null;
+        this.showToast('Listing deleted successfully', 'success');
+      },
+      error: err => {
+        this.deletingId = null;
+        this.showToast('Delete failed: ' + (err?.error?.message || 'Unknown error'), 'error');
+      }
+    });
   }
 
   cancelForm(): void {
@@ -92,9 +158,9 @@ export class AdminComponent implements OnInit {
 
   toggleSkillWeight(skillId: number): void {
     const current = this.skillWeights[skillId];
-    if (!current) this.skillWeights[skillId] = 2;        // required
-    else if (current === 2) this.skillWeights[skillId] = 1; // nice-to-have
-    else delete this.skillWeights[skillId];               // remove
+    if (!current) this.skillWeights[skillId] = 2;
+    else if (current === 2) this.skillWeights[skillId] = 1;
+    else delete this.skillWeights[skillId];
   }
 
   skillWeightLabel(skillId: number): string {
@@ -114,25 +180,30 @@ export class AdminComponent implements OnInit {
   save(): void {
     if (this.listingForm.invalid) { this.listingForm.markAllAsTouched(); return; }
     this.saving = true;
-    this.saveMessage = '';
     const raw = this.listingForm.getRawValue();
     const payload = { ...raw, skillWeights: this.skillWeights } as any;
+    const wasEditing = this.editingId;
 
-    const req$ = this.editingId
-      ? this.listingService.update(this.editingId, payload)
+    const req$ = wasEditing
+      ? this.listingService.update(wasEditing, payload)
       : this.listingService.create(payload);
 
     req$.subscribe({
-      next: () => {
+      next: (saved: Listing) => {
         this.saving = false;
-        this.saveMessage = this.editingId ? 'Listing updated!' : 'Listing created!';
+        if (wasEditing) {
+          this.listings = this.listings.map(l => l.id === wasEditing ? saved : l);
+          this.showToast('Listing updated successfully', 'success');
+        } else {
+          this.listings = [saved, ...this.listings];
+          this.showToast('Listing created successfully', 'success');
+        }
         this.showForm = false;
         this.editingId = null;
-        this.loadListings();
       },
       error: err => {
         this.saving = false;
-        this.saveMessage = 'Error: ' + (err?.error?.message || 'unknown');
+        this.showToast('Save failed: ' + (err?.error?.message || 'Unknown error'), 'error');
       }
     });
   }
@@ -146,7 +217,10 @@ export class AdminComponent implements OnInit {
         this.topStudents = res.content;
         this.loadingStudents = false;
       },
-      error: () => (this.loadingStudents = false)
+      error: () => {
+        this.loadingStudents = false;
+        this.showToast('Failed to load students', 'error');
+      }
     });
   }
 

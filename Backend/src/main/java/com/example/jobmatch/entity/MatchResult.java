@@ -9,7 +9,10 @@ import java.time.Instant;
 import java.util.Objects;
 
 @Entity
-@Table(name = "match_results")
+@Table(name = "match_results", indexes = {
+    @Index(name = "idx_mr_student_score", columnList = "student_id, score DESC"),
+    @Index(name = "idx_mr_listing_score", columnList = "listing_id, score DESC")
+})
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @IdClass(MatchResult.MatchResultId.class)
 public class MatchResult {
@@ -33,6 +36,9 @@ public class MatchResult {
 
     @Column(name = "auth_score")
     private BigDecimal authScore;
+
+    @Column(name = "mode_score")
+    private BigDecimal modeScore;
 
     @Column(name = "matched_skills", columnDefinition = "TEXT")
     private String matchedSkills;

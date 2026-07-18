@@ -4,6 +4,7 @@ export interface MatchBreakdown {
   skillScore: number;
   gpaScore: number;
   authScore: number;
+  modeScore: number;
   matchedSkills: string[];
   missingSkills: string[];
 }
@@ -35,4 +36,5 @@ export interface ApplicationRecord {
   companyName: string;
   status: ApplicationStatus;
   appliedAt: string;
+  notes: string | null;
 }

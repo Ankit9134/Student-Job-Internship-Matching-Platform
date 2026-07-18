@@ -1,132 +1,190 @@
 <div>
-  <!-- Page Header -->
-  <div class="mb-8">
-    <h2 class="text-2xl font-bold text-slate-900">My Profile</h2>
-    <p class="text-sm text-slate-500 mt-1">Keep this up to date — your match scores recalculate automatically on save.</p>
+  <!-- Toast Notification -->
+  <div *ngIf="toastVisible"
+       [class]="'fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-xl border text-sm font-medium ' +
+         (toastType === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-700')">
+    <lucide-icon [img]="toastType === 'success' ? CheckIcon : AlertIcon" [size]="16"
+                 [class]="toastType === 'success' ? 'text-emerald-500 shrink-0' : 'text-red-500 shrink-0'"></lucide-icon>
+    <span>{{ saveMessage }}</span>
+    <button type="button" (click)="toastVisible = false" class="ml-1 text-slate-400 hover:text-slate-600 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
   </div>
 
-  <form [formGroup]="profileForm" (ngSubmit)="save()" class="flex flex-col gap-6">
+  <!-- Page Header -->
+  <div class="mb-7">
+    <div class="flex items-center gap-3 mb-1">
+      <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-sm">
+        <lucide-icon [img]="UserIcon" [size]="16" class="text-white"></lucide-icon>
+      </div>
+      <h2 class="text-xl sm:text-2xl font-bold text-slate-900">My Profile</h2>
+    </div>
+    <p class="text-sm text-slate-500 ml-12">Keep this up to date — match scores recalculate on every save.</p>
+  </div>
 
-    <!-- Personal Info Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Personal Information</h3>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <form [formGroup]="profileForm" (ngSubmit)="save()" class="flex flex-col gap-5">
 
-        <div class="flex flex-col gap-1.5">
-          <label for="fullName" class="text-sm font-semibold text-slate-700">Full Name</label>
-          <input id="fullName" type="text" formControlName="fullName" placeholder="Ankit Pal"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+    <!-- Skeleton -->
+    <ng-container *ngIf="loadingProfile()">
+      <div *ngFor="let i of [1,2,3]" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="h-3 bg-slate-200 rounded-full w-28 mb-5 animate-pulse"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div *ngFor="let j of [1,2,3,4]" class="h-11 bg-slate-100 rounded-xl animate-pulse"></div>
         </div>
+      </div>
+    </ng-container>
 
-        <div class="flex flex-col gap-1.5">
-          <label for="email" class="text-sm font-semibold text-slate-700">Email</label>
-          <input id="email" type="email" formControlName="email" placeholder="you@university.edu"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
-          <small class="text-red-500 text-xs" *ngIf="profileForm.get('email')?.touched && profileForm.get('email')?.invalid">
-            A valid email is required.
-          </small>
+    <!-- Personal Info -->
+    <div *ngIf="!loadingProfile()" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
+          <lucide-icon [img]="UserIcon" [size]="14" class="text-indigo-600"></lucide-icon>
         </div>
-
+        <h3 class="text-sm font-semibold text-slate-700">Personal Information</h3>
+      </div>
+      <div class="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1.5">
-          <label for="gpa" class="text-sm font-semibold text-slate-700">GPA <span class="text-slate-400 font-normal">(out of 10)</span></label>
-          <input id="gpa" type="number" step="0.01" min="0" max="10" formControlName="gpa" placeholder="8.5"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Full Name</label>
+          <input formControlName="fullName" type="text" placeholder="Ankit Pal"
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label for="gradYear" class="text-sm font-semibold text-slate-700">Graduation Year</label>
-          <input id="gradYear" type="number" formControlName="gradYear" placeholder="2026"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</label>
+          <input formControlName="email" type="email" placeholder="you@university.edu"
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+          <small class="text-red-500 text-xs" *ngIf="profileForm.get('email')?.touched && profileForm.get('email')?.invalid">Valid email required.</small>
         </div>
-
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">GPA <span class="text-slate-400 normal-case font-normal">(out of 10)</span></label>
+          <input formControlName="gpa" type="number" step="0.01" min="0" max="10" placeholder="8.5"
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Graduation Year</label>
+          <input formControlName="gradYear" type="number" placeholder="2026"
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+        </div>
       </div>
     </div>
 
-    <!-- Work Preferences Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Work Preferences</h3>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
+    <!-- Work Preferences -->
+    <div *ngIf="!loadingProfile()" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center">
+          <lucide-icon [img]="BriefcaseIcon" [size]="14" class="text-violet-600"></lucide-icon>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-700">Work Preferences</h3>
+      </div>
+      <div class="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1.5">
-          <label for="workAuthStatus" class="text-sm font-semibold text-slate-700">Work Authorization</label>
-          <select id="workAuthStatus" formControlName="workAuthStatus"
-                  class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white">
-            <option value="CITIZEN">🇺🇸 U.S. Citizen</option>
-            <option value="PERM_RESIDENT">🟢 Permanent Resident</option>
-            <option value="F1_OPT">🎓 F-1 / OPT</option>
-            <option value="H1B_NEEDED">📋 Needs H-1B</option>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Work Authorization</label>
+          <select formControlName="workAuthStatus"
+                  class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            <option value="CITIZEN">U.S. Citizen</option>
+            <option value="PERM_RESIDENT">Permanent Resident</option>
+            <option value="F1_OPT">F-1 / OPT</option>
+            <option value="H1B_NEEDED">Needs H-1B</option>
             <option value="OTHER">Other</option>
           </select>
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label for="preferredWorkMode" class="text-sm font-semibold text-slate-700">Preferred Work Mode</label>
-          <select id="preferredWorkMode" formControlName="preferredWorkMode"
-                  class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white">
-            <option value="ANY">🌐 Any</option>
-            <option value="REMOTE">🏠 Remote</option>
-            <option value="ONSITE">🏢 Onsite</option>
-            <option value="HYBRID">🔀 Hybrid</option>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preferred Work Mode</label>
+          <select formControlName="preferredWorkMode"
+                  class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            <option value="ANY">Any</option>
+            <option value="REMOTE">Remote</option>
+            <option value="ONSITE">Onsite</option>
+            <option value="HYBRID">Hybrid</option>
           </select>
         </div>
-
         <div class="flex flex-col gap-1.5 sm:col-span-2">
-          <label for="preferredLocations" class="text-sm font-semibold text-slate-700">Preferred Locations</label>
-          <input id="preferredLocations" type="text" placeholder="e.g. Remote, New York, Austin"
-                 formControlName="preferredLocations"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preferred Locations</label>
+          <input formControlName="preferredLocations" type="text" placeholder="e.g. Remote, New York, Austin"
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
-
-        <div class="flex items-center gap-3 sm:col-span-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <input type="checkbox" id="needsSponsorship" formControlName="needsSponsorship"
-                 class="w-4 h-4 accent-indigo-600" />
-          <label for="needsSponsorship" class="text-sm text-slate-700">
-            <span class="font-semibold">I will need visa sponsorship</span>
-            <span class="text-slate-500 ml-1">— only show roles that offer sponsorship</span>
-          </label>
-        </div>
-
+        <label class="flex items-center gap-3 sm:col-span-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-amber-100/50 transition">
+          <input type="checkbox" formControlName="needsSponsorship" class="w-4 h-4 accent-indigo-600 shrink-0" />
+          <div>
+            <p class="text-sm font-semibold text-slate-700">I need visa sponsorship</p>
+            <p class="text-xs text-slate-500 hidden sm:block">Only show roles that offer sponsorship</p>
+          </div>
+        </label>
       </div>
     </div>
 
-    <!-- Skills Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">Skills</h3>
-      <p class="text-xs text-slate-400 mb-4">Select all that apply — this is the primary driver of your match score.</p>
-
-      <div *ngIf="allSkills.length === 0" class="text-sm text-slate-400 italic">Loading skills...</div>
-
-      <div class="flex flex-wrap gap-2">
-        <button type="button" *ngFor="let skill of allSkills"
-                (click)="toggleSkill(skill.id)"
-                [class]="isSkillSelected(skill.id)
-                  ? 'px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white border border-indigo-600 cursor-pointer transition-all shadow-sm'
-                  : 'px-3 py-1.5 rounded-full text-sm font-medium bg-white text-slate-600 border border-slate-300 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer transition-all'">
-          {{ skill.name }}
-        </button>
+    <!-- Skills -->
+    <div *ngIf="!loadingProfile()" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center">
+            <lucide-icon [img]="ZapIcon" [size]="14" class="text-amber-600"></lucide-icon>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-700">Skills</h3>
+        </div>
+        <span class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full">
+          {{ skillIdsArray.length }} selected
+        </span>
       </div>
-
-      <p class="text-xs text-slate-400 mt-3">{{ skillIdsArray.length }} skill(s) selected</p>
+      <div class="p-5 sm:p-6">
+        <p class="text-xs text-slate-400 mb-4">Select all that apply — primary driver of your match score.</p>
+        <div *ngIf="allSkills.length === 0" class="flex gap-2">
+          <div *ngFor="let i of [1,2,3,4,5]" class="h-8 w-20 bg-slate-100 rounded-full animate-pulse"></div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" *ngFor="let skill of allSkills" (click)="toggleSkill(skill.id)"
+                  [class]="isSkillSelected(skill.id)
+                    ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm cursor-pointer transition-all scale-105'
+                    : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-all'">
+            {{ skill.name }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Resume Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Resume</h3>
-      <input id="resume" type="file" accept=".pdf,.doc,.docx" (change)="onResumeSelected($event)"
-             class="text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer transition" />
-      <p class="text-xs text-slate-400 mt-2">PDF, DOC, or DOCX — max 5MB</p>
+    <!-- Resume -->
+    <div *ngIf="!loadingProfile()" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center">
+          <lucide-icon [img]="FileTextIcon" [size]="14" class="text-emerald-600"></lucide-icon>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-700">Resume</h3>
+      </div>
+      <div class="p-5 sm:p-6">
+        <!-- Existing Resume -->
+        <div *ngIf="existingResumeUrl" class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-4">
+          <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+            <lucide-icon [img]="FileTextIcon" [size]="15" class="text-emerald-600"></lucide-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-emerald-700">Resume uploaded</p>
+            <p class="text-xs text-emerald-500 truncate">Click view to open your current resume</p>
+          </div>
+          <a [href]="existingResumeUrl" target="_blank"
+             class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition shrink-0">
+            <lucide-icon [img]="FileTextIcon" [size]="11"></lucide-icon> View
+          </a>
+        </div>
+        <!-- Upload -->
+        <div class="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center hover:border-indigo-300 hover:bg-indigo-50/30 transition cursor-pointer">
+          <lucide-icon [img]="FileTextIcon" [size]="24" class="text-slate-300 mx-auto mb-2"></lucide-icon>
+          <p class="text-sm text-slate-500 mb-3">{{ existingResumeUrl ? 'Upload a new resume to replace' : 'Drop your resume here or click to browse' }}</p>
+          <input type="file" accept=".pdf,.doc,.docx" (change)="onResumeSelected($event)"
+                 class="text-sm text-slate-600 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer transition" />
+          <p class="text-xs text-slate-400 mt-2">PDF, DOC, or DOCX — max 5MB</p>
+        </div>
+        <p *ngIf="selectedResume" class="text-xs text-emerald-600 font-medium mt-2 flex items-center gap-1">
+          <lucide-icon [img]="CheckIcon" [size]="12"></lucide-icon> {{ selectedResume.name }} — will upload on save
+        </p>
+      </div>
     </div>
 
-    <!-- Save Button -->
-    <div class="flex items-center gap-4">
-      <button type="submit" [disabled]="saving"
-              class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
-        {{ saving ? '⏳ Saving...' : '💾 Save Profile' }}
+    <!-- Save -->
+    <div *ngIf="!loadingProfile()" class="flex items-center gap-3 pb-2">
+      <button type="submit" [disabled]="saving()"
+              class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50 transition shadow-md shadow-indigo-200 w-full sm:w-auto justify-center">
+        <lucide-icon [img]="SaveIcon" [size]="15"></lucide-icon>
+        {{ saving() ? 'Saving...' : 'Save Profile' }}
       </button>
-      <span *ngIf="saveMessage"
-            [class]="saveMessage.startsWith('Could') ? 'text-sm text-red-600 font-medium' : 'text-sm text-emerald-600 font-medium'">
-        {{ saveMessage.startsWith('Could') ? '❌' : '✅' }} {{ saveMessage }}
-      </span>
     </div>
 
   </form>

@@ -14,6 +14,7 @@ public class MatchDtos {
         private BigDecimal skillScore;
         private BigDecimal gpaScore;
         private BigDecimal authScore;
+        private BigDecimal modeScore;
         private List<String> matchedSkills;
         private List<String> missingSkills;
     }
@@ -45,6 +46,14 @@ public class MatchDtos {
     public static class StudentMatchResponse {
         private Long studentId;
         private String studentName;
+        private String email;
+        private java.math.BigDecimal gpa;
+        private Integer gradYear;
+        private String workAuthStatus;
+        private boolean needsSponsorship;
+        private String preferredLocations;
+        private String preferredWorkMode;
+        private boolean hasResume;
         private BigDecimal score;
         private MatchBreakdown breakdown;
     }

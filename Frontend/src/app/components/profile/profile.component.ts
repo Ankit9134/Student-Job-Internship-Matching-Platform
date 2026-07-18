@@ -1,25 +1,37 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StudentService } from '../../services/student.service';
 import { SkillService } from '../../services/skill.service';
 import { Skill, StudentProfileRequest } from '../../models/student.model';
+import { LucideAngularModule, User, Briefcase, Zap, FileText, Save, AlertCircle, CheckCircle } from 'lucide-angular';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private studentService = inject(StudentService);
   private skillService = inject(SkillService);
+  private cdr = inject(ChangeDetectorRef);
+
+  readonly UserIcon = User;
+  readonly BriefcaseIcon = Briefcase;
+  readonly ZapIcon = Zap;
+  readonly FileTextIcon = FileText;
+  readonly SaveIcon = Save;
+  readonly AlertIcon = AlertCircle;
+  readonly CheckIcon = CheckCircle;
 
   allSkills: Skill[] = [];
-  saving = false;
+  loadingProfile = signal(false);
+  saving = signal(false);
   saveMessage = '';
   selectedResume: File | null = null;
+  existingResumeUrl: string | null = null;
 
   profileForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -42,9 +54,11 @@ export class ProfileComponent implements OnInit {
 
     this.studentId = this.studentService.getSavedStudentId();
     if (this.studentId) {
+      this.loadingProfile.set(true);
       this.studentService.getProfile(this.studentId).subscribe({
         next: profile => {
           this.studentExists = true;
+          this.loadingProfile.set(false);
           this.profileForm.patchValue({
             email: profile.email,
             fullName: profile.fullName,
@@ -56,8 +70,9 @@ export class ProfileComponent implements OnInit {
             preferredLocations: profile.preferredLocations
           });
           this.setSkillIds(profile.skills.map(s => s.id));
+          this.existingResumeUrl = profile.resumeUrl ? this.studentService.getResumeViewUrl(this.studentId!) : null;
         },
-        error: () => { this.studentExists = false; }
+        error: () => { this.studentExists = false; this.loadingProfile.set(false); }
       });
     }
   }
@@ -84,6 +99,18 @@ export class ProfileComponent implements OnInit {
     ids.forEach(id => this.skillIdsArray.push(this.fb.control(id, { nonNullable: true })));
   }
 
+  private toastTimer: any;
+  toastVisible = false;
+  toastType: 'success' | 'error' = 'success';
+
+  showToast(message: string, type: 'success' | 'error'): void {
+    this.saveMessage = message;
+    this.toastType = type;
+    this.toastVisible = true;
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => (this.toastVisible = false), 4000);
+  }
+
   onResumeSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedResume = input.files && input.files.length ? input.files[0] : null;
@@ -95,8 +122,14 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    this.saving = true;
+    this.saving.set(true);
     this.saveMessage = '';
+    const saveTimeout = setTimeout(() => {
+      if (this.saving()) {
+        this.saving.set(false);
+        this.showToast('Request timed out. Please try again.', 'error');
+      }
+    }, 15000);
     const raw = this.profileForm.getRawValue();
     const payload: StudentProfileRequest = {
       email: raw.email!,
@@ -116,18 +149,27 @@ export class ProfileComponent implements OnInit {
 
     request$.subscribe({
       next: res => {
+        clearTimeout(saveTimeout);
         this.studentExists = true;
         this.studentId = res.id;
-        this.saving = false;
-        this.saveMessage = 'Profile saved — your matches have been recalculated.';
+        this.saving.set(false);
+        console.log('SAVE SUCCESS: saving =', this.saving());
+        this.showToast('Profile saved — your matches have been recalculated.', 'success');
         if (this.selectedResume && this.studentId) {
-          this.studentService.uploadResume(this.studentId, this.selectedResume).subscribe();
+          this.studentService.uploadResume(this.studentId, this.selectedResume).subscribe({
+            next: () => {
+              this.existingResumeUrl = this.studentService.getResumeViewUrl(this.studentId!);
+              this.selectedResume = null;
+            },
+            error: () => this.showToast('Profile saved but resume upload failed.', 'error')
+          });
         }
       },
       error: err => {
-        this.saving = false;
-        this.saveMessage = 'Could not save profile: ' + (err?.error?.message || JSON.stringify(err?.error) || 'unknown error');
-        console.error('Save error:', err?.error);
+        clearTimeout(saveTimeout);
+        this.saving.set(false);
+        this.showToast('Could not save profile: ' + (err?.error?.message || JSON.stringify(err?.error) || 'unknown error'), 'error');
+        console.error('Save error full:', err);
       }
     });
   }

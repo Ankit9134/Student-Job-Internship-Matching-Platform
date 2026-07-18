@@ -93,6 +93,14 @@ public class ListingService {
             .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + id));
     }
 
+    @Transactional
+    public void delete(Long id) {
+        if (!listingRepo.existsById(id))
+            throw new ResourceNotFoundException("Listing not found: " + id);
+        listingSkillRepo.deleteByListingId(id);
+        listingRepo.deleteById(id);
+    }
+
     @Transactional(readOnly = true)
     public ListingResponse toResponse(Listing listing) {
         List<ListingSkill> listingSkills = listingSkillRepo.findByListingId(listing.getId());

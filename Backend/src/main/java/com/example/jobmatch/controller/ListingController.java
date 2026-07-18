@@ -5,6 +5,7 @@ import com.example.jobmatch.dto.ListingDtos.ListingResponse;
 import com.example.jobmatch.dto.MatchDtos.PagedResponse;
 import com.example.jobmatch.dto.MatchDtos.StudentMatchResponse;
 import com.example.jobmatch.entity.Listing;
+import com.example.jobmatch.repository.ApplicationRepository;
 import com.example.jobmatch.service.ListingService;
 import com.example.jobmatch.service.MatchQueryService;
 import com.example.jobmatch.service.MatchingService;
@@ -13,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,6 +28,7 @@ public class ListingController {
     private final ListingService listingService;
     private final MatchingService matchingService;
     private final MatchQueryService matchQueryService;
+    private final ApplicationRepository applicationRepository;
 
     @PostMapping
     public ListingResponse create(@Valid @RequestBody ListingRequest req) {
@@ -52,6 +56,26 @@ public class ListingController {
     @GetMapping("/{id}")
     public ListingResponse get(@PathVariable Long id) {
         return listingService.toResponse(listingService.getById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        listingService.delete(id);
+    }
+
+    @GetMapping("/applicants/counts")
+    public Map<Long, Long> getAllApplicantCounts() {
+        return applicationRepository.findAll().stream()
+            .collect(Collectors.groupingBy(
+                com.example.jobmatch.entity.Application::getListingId,
+                Collectors.counting()
+            ));
+    }
+
+    @GetMapping("/{id}/applicants/count")
+    public Map<String, Long> getApplicantCount(@PathVariable Long id) {
+        return Map.of("count", applicationRepository.countByListingId(id));
     }
 
     /** Recruiter-side (stretch goal): top matching students for this listing. */

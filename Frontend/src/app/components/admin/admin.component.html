@@ -1,61 +1,84 @@
-<div>
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-8">
-    <div>
-      <h2 class="text-2xl font-bold text-slate-900">Recruiter Dashboard</h2>
-      <p class="text-sm text-slate-500 mt-1">Manage job listings and view top matching students.</p>
-    </div>
-    <button (click)="openCreate()"
-            class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition shadow-sm flex items-center gap-2">
-      ＋ Post New Listing
+<div class="relative">
+
+  <!-- Toast -->
+  <div *ngIf="toast"
+       class="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-sm font-medium animate-in"
+       [class]="toast.type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white' : 'bg-gradient-to-r from-red-500 to-rose-600 text-white'">
+    <lucide-icon [img]="toast.type === 'success' ? CheckCircleIcon : XCircleIcon" [size]="16"></lucide-icon>
+    {{ toast.message }}
+    <button (click)="toast = null" class="ml-1 opacity-70 hover:opacity-100 transition">
+      <lucide-icon [img]="XIcon" [size]="14"></lucide-icon>
     </button>
   </div>
 
-  <!-- Create / Edit Form -->
-  <div *ngIf="showForm" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
-    <div class="flex items-center justify-between mb-5">
-      <h3 class="text-base font-bold text-slate-800">{{ editingId ? '✏️ Edit Listing' : '➕ New Listing' }}</h3>
-      <button (click)="cancelForm()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-sm">
+          <lucide-icon [img]="BriefcaseIcon" [size]="16" class="text-white"></lucide-icon>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Recruiter Dashboard</h2>
+      </div>
+      <p class="text-sm text-slate-500 ml-12">Manage listings and view top matching students.</p>
+    </div>
+    <button (click)="openCreate()"
+            class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-700 hover:to-violet-700 transition shadow-md shadow-indigo-200 w-full sm:w-auto">
+      <lucide-icon [img]="PlusIcon" [size]="16"></lucide-icon> Post New Listing
+    </button>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div #formSection *ngIf="showForm" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+    <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+      <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+        <div class="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center">
+          <lucide-icon [img]="editingId ? PencilIcon : PlusIcon" [size]="13" class="text-indigo-600"></lucide-icon>
+        </div>
+        {{ editingId ? 'Edit Listing' : 'New Listing' }}
+      </h3>
+      <button (click)="cancelForm()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+        <lucide-icon [img]="XIcon" [size]="18"></lucide-icon>
+      </button>
     </div>
 
-    <form [formGroup]="listingForm" (ngSubmit)="save()" class="flex flex-col gap-4">
-
+    <form [formGroup]="listingForm" (ngSubmit)="save()" class="p-5 sm:p-6 flex flex-col gap-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Job Title *</label>
           <input formControlName="title" placeholder="e.g. Software Engineer Intern"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Company *</label>
           <input formControlName="companyName" placeholder="e.g. Google"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Location</label>
           <input formControlName="location" placeholder="e.g. Remote, New York"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Min GPA</label>
           <input formControlName="minGpa" type="number" step="0.1" min="0" max="10" placeholder="e.g. 7.0"
-                 class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+                 class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Work Mode *</label>
           <select formControlName="workMode"
-                  class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-white">
-            <option value="REMOTE">🏠 Remote</option>
-            <option value="ONSITE">🏢 Onsite</option>
-            <option value="HYBRID">🔀 Hybrid</option>
+                  class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            <option value="REMOTE">Remote</option>
+            <option value="ONSITE">Onsite</option>
+            <option value="HYBRID">Hybrid</option>
           </select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Role Type *</label>
           <select formControlName="roleType"
-                  class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-white">
-            <option value="FULL_TIME">💼 Full-time</option>
-            <option value="INTERNSHIP">🎓 Internship</option>
+                  class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            <option value="FULL_TIME">Full-time</option>
+            <option value="INTERNSHIP">Internship</option>
           </select>
         </div>
       </div>
@@ -63,84 +86,99 @@
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Description</label>
         <textarea formControlName="description" rows="3" placeholder="Describe the role..."
-                  class="px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+                  class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"></textarea>
       </div>
 
-      <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-        <input type="checkbox" formControlName="sponsorshipOffered" class="w-4 h-4 accent-indigo-600" />
-        <label class="text-sm text-slate-700 font-medium">Visa sponsorship offered</label>
-      </div>
+      <label class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-amber-100/50 transition">
+        <input type="checkbox" formControlName="sponsorshipOffered" class="w-4 h-4 accent-indigo-600 shrink-0" />
+        <span class="text-sm text-slate-700 font-medium">Visa sponsorship offered</span>
+      </label>
 
       <!-- Skills -->
       <div class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Skills</label>
-        <p class="text-xs text-slate-400">Click once = <span class="text-indigo-600 font-semibold">Required</span> · Click twice = <span class="text-amber-500 font-semibold">Nice-to-have</span> · Click thrice = Remove</p>
-        <div class="flex flex-wrap gap-2 mt-1">
-          <button type="button" *ngFor="let skill of allSkills"
-                  (click)="toggleSkillWeight(skill.id)"
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Skills</label>
+          <span class="text-xs text-slate-400">Once = <span class="text-indigo-600 font-semibold">Required</span> · Twice = <span class="text-amber-500 font-semibold">Nice-to-have</span> · Thrice = Remove</span>
+        </div>
+        <div class="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <button type="button" *ngFor="let skill of allSkills" (click)="toggleSkillWeight(skill.id)"
                   [class]="skillButtonClass(skill.id)">
             {{ skill.name }}
-            <span *ngIf="skillWeightLabel(skill.id)" class="ml-1 opacity-75">({{ skillWeightLabel(skill.id) }})</span>
+            <span *ngIf="skillWeightLabel(skill.id)" class="ml-1 opacity-80">({{ skillWeightLabel(skill.id) }})</span>
           </button>
         </div>
       </div>
 
-      <div class="flex items-center gap-4 pt-2">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-1">
         <button type="submit" [disabled]="saving"
-                class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition shadow-sm">
-          {{ saving ? '⏳ Saving...' : (editingId ? '💾 Update Listing' : '🚀 Post Listing') }}
+                class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-700 hover:to-violet-700 disabled:opacity-60 transition shadow-md shadow-indigo-200 w-full sm:w-auto justify-center">
+          <lucide-icon *ngIf="!saving" [img]="editingId ? PencilIcon : PlusIcon" [size]="15"></lucide-icon>
+          <lucide-icon *ngIf="saving" [img]="LoaderIcon" [size]="15" class="animate-spin"></lucide-icon>
+          {{ saving ? 'Saving...' : (editingId ? 'Update Listing' : 'Post Listing') }}
         </button>
-        <button type="button" (click)="cancelForm()"
-                class="px-5 py-2.5 border border-slate-300 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition">
+        <button type="button" (click)="cancelForm()" [disabled]="saving"
+                class="px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 disabled:opacity-60 transition w-full sm:w-auto text-center">
           Cancel
         </button>
-        <span *ngIf="saveMessage" class="text-sm font-medium"
-              [class]="saveMessage.startsWith('Error') ? 'text-red-600' : 'text-emerald-600'">
-          {{ saveMessage }}
-        </span>
       </div>
     </form>
   </div>
 
   <!-- Top Students Panel -->
-  <div *ngIf="selectedListing" class="bg-white rounded-2xl border border-indigo-200 shadow-sm p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
+  <div *ngIf="selectedListing" class="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden mb-6">
+    <div class="px-5 sm:px-6 py-4 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-white flex items-start justify-between">
       <div>
-        <h3 class="text-base font-bold text-slate-800">🎯 Top Matching Students</h3>
-        <p class="text-sm text-slate-500">for <strong>{{ selectedListing.title }}</strong> at {{ selectedListing.companyName }}</p>
+        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <lucide-icon [img]="UsersIcon" [size]="15" class="text-indigo-600"></lucide-icon>
+          Top Matching Students
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5">for <strong class="text-slate-700">{{ selectedListing.title }}</strong> at {{ selectedListing.companyName }}
+          <span class="ml-2 inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 text-xs font-semibold px-2 py-0.5 rounded-full border border-indigo-100">
+            <lucide-icon [img]="UsersIcon" [size]="10"></lucide-icon>
+            {{ applicantCounts[selectedListing.id] || 0 }} applied
+          </span>
+        </p>
       </div>
-      <button (click)="closeStudents()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+      <button (click)="closeStudents()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition">
+        <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+      </button>
     </div>
 
-    <div *ngIf="loadingStudents" class="text-sm text-slate-400 animate-pulse py-4 text-center">Loading students...</div>
-
-    <div *ngIf="!loadingStudents && topStudents.length === 0" class="text-center py-8">
-      <div class="text-3xl mb-2">👥</div>
-      <p class="text-sm text-slate-500">No student matches yet. Students need to save their profiles first.</p>
+    <div *ngIf="loadingStudents" class="p-4 space-y-2">
+      <div *ngFor="let i of [1,2,3]" class="h-11 bg-slate-100 rounded-xl animate-pulse"></div>
     </div>
 
-    <div *ngIf="!loadingStudents && topStudents.length > 0" class="overflow-x-auto rounded-xl border border-slate-100">
+    <div *ngIf="!loadingStudents && topStudents.length === 0" class="p-10 text-center">
+      <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <lucide-icon [img]="UsersIcon" [size]="20" class="text-slate-400"></lucide-icon>
+      </div>
+      <p class="text-sm text-slate-500">No matches yet. Students need to save their profiles first.</p>
+    </div>
+
+    <div *ngIf="!loadingStudents && topStudents.length > 0" class="overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="bg-slate-50 border-b border-slate-100">
+        <thead class="bg-slate-50/80 border-b border-slate-100">
           <tr>
-            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">#</th>
-            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Student</th>
-            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Match Score</th>
-            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Skill</th>
-            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">GPA</th>
-            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Auth</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">#</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Student</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Score</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden sm:table-cell">Skill</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden sm:table-cell">GPA</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden sm:table-cell">Auth</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          <tr *ngFor="let s of topStudents; let i = index" class="hover:bg-slate-50 transition">
-            <td class="px-4 py-3 text-slate-400 font-medium">{{ i + 1 }}</td>
-            <td class="px-4 py-3 font-semibold text-slate-800">{{ s.studentName }}</td>
-            <td class="px-4 py-3">
-              <span [class]="'font-bold text-base ' + scoreColor(s.score)">{{ s.score }}%</span>
+          <tr *ngFor="let s of topStudents; let i = index"
+              class="hover:bg-slate-50 transition cursor-pointer"
+              (click)="selectedStudent = s">
+            <td class="px-5 py-3.5 text-slate-400 font-semibold text-xs">{{ i+1 }}</td>
+            <td class="px-5 py-3.5 font-semibold text-slate-800">{{ s.studentName }}</td>
+            <td class="px-5 py-3.5">
+              <span [class]="'font-bold text-sm ' + scoreColor(s.score)">{{ s.score }}%</span>
             </td>
-            <td class="px-4 py-3 text-slate-500">{{ s.breakdown?.skillScore }}%</td>
-            <td class="px-4 py-3 text-slate-500">{{ s.breakdown?.gpaScore }}%</td>
-            <td class="px-4 py-3 text-slate-500">{{ s.breakdown?.authScore }}%</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs hidden sm:table-cell">{{ s.breakdown?.skillScore }}%</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs hidden sm:table-cell">{{ s.breakdown?.gpaScore }}%</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs hidden sm:table-cell">{{ s.breakdown?.authScore }}%</td>
           </tr>
         </tbody>
       </table>
@@ -149,68 +187,207 @@
 
   <!-- Listings Table -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-      <h3 class="text-sm font-bold text-slate-700">All Listings ({{ listings.length }})</h3>
+    <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <lucide-icon [img]="ClipboardListIcon" [size]="15" class="text-indigo-600"></lucide-icon>
+        <h3 class="text-sm font-bold text-slate-700">All Listings</h3>
+      </div>
+      <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">{{ listings.length }}</span>
     </div>
 
-    <div *ngIf="loadingListings" class="p-8 text-center text-sm text-slate-400 animate-pulse">Loading...</div>
+    <!-- Loading -->
+    <div *ngIf="loadingListings" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="w-10 h-10 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-spin"></div>
+      <p class="text-sm font-medium text-slate-500">Loading listings...</p>
+    </div>
 
     <div *ngIf="!loadingListings && listings.length === 0" class="p-12 text-center">
-      <div class="text-4xl mb-3">📋</div>
-      <p class="text-slate-600 font-semibold">No listings yet</p>
-      <p class="text-sm text-slate-400 mt-1">Click "Post New Listing" to add the first one.</p>
+      <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <lucide-icon [img]="ClipboardListIcon" [size]="20" class="text-slate-400"></lucide-icon>
+      </div>
+      <p class="text-slate-600 font-semibold mb-1">No listings yet</p>
+      <p class="text-sm text-slate-400">Click "Post New Listing" to add the first one.</p>
     </div>
 
     <div *ngIf="!loadingListings && listings.length > 0" class="overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="bg-slate-50 border-b border-slate-100">
+        <thead class="bg-slate-50/80 border-b border-slate-100">
           <tr>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Title</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Company</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Mode</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Type</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Sponsorship</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Actions</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Title</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden sm:table-cell">Company</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden md:table-cell">Mode</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden md:table-cell">Type</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden sm:table-cell">Applicants</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          <tr *ngFor="let listing of listings" class="hover:bg-slate-50 transition">
-            <td class="px-5 py-3.5 font-semibold text-slate-900">{{ listing.title }}</td>
-            <td class="px-5 py-3.5 text-slate-500">{{ listing.companyName }}</td>
-            <td class="px-5 py-3.5">
-              <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
-                {{ listing.workMode }}
+          <tr *ngFor="let listing of listings" class="hover:bg-slate-50/60 transition group"
+              [class.opacity-40]="deletingId === listing.id">
+            <td class="px-5 py-4">
+              <p class="font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors">{{ listing.title }}</p>
+              <p class="text-xs text-slate-400 font-normal sm:hidden mt-0.5">{{ listing.companyName }}</p>
+            </td>
+            <td class="px-5 py-4 text-slate-500 hidden sm:table-cell">{{ listing.companyName }}</td>
+            <td class="px-5 py-4 hidden md:table-cell">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">{{ listing.workMode }}</span>
+            </td>
+            <td class="px-5 py-4 hidden md:table-cell">
+              <span [class]="listing.roleType==='INTERNSHIP'
+                ? 'bg-violet-50 text-violet-700 text-xs px-2.5 py-1 rounded-full font-medium border border-violet-100'
+                : 'bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full font-medium border border-blue-100'">
+                {{ listing.roleType==='INTERNSHIP' ? 'Internship' : 'Full-time' }}
               </span>
             </td>
-            <td class="px-5 py-3.5">
-              <span [class]="listing.roleType === 'INTERNSHIP'
-                ? 'bg-purple-50 text-purple-700 text-xs px-2.5 py-1 rounded-full font-medium'
-                : 'bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full font-medium'">
-                {{ listing.roleType === 'INTERNSHIP' ? '🎓 Internship' : '💼 Full-time' }}
+            <td class="px-5 py-4 hidden sm:table-cell">
+              <span class="inline-flex items-center gap-1 text-sm font-bold text-slate-700">
+                <lucide-icon [img]="UsersIcon" [size]="13" class="text-indigo-400"></lucide-icon>
+                {{ applicantCounts[listing.id] || '—' }}
               </span>
             </td>
-            <td class="px-5 py-3.5">
-              <span [class]="listing.sponsorshipOffered
-                ? 'bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium'
-                : 'bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full font-medium'">
-                {{ listing.sponsorshipOffered ? '✅ Yes' : '❌ No' }}
-              </span>
-            </td>
-            <td class="px-5 py-3.5">
-              <div class="flex gap-2">
+            <td class="px-5 py-4">
+              <!-- Inline Delete Confirm -->
+              <div *ngIf="confirmDeleteId === listing.id" class="flex items-center gap-2">
+                <span class="text-xs text-red-600 font-semibold">Delete?</span>
+                <button (click)="deleteListing(listing.id)"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition">Yes</button>
+                <button (click)="cancelDelete()"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">No</button>
+              </div>
+              <!-- Normal Actions -->
+              <div *ngIf="confirmDeleteId !== listing.id" class="flex gap-1.5">
                 <button (click)="viewTopStudents(listing)"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-100">
-                  👥 Top Students
+                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-100">
+                  <lucide-icon [img]="UsersIcon" [size]="11"></lucide-icon>
+                  <span class="hidden sm:inline">Students</span>
                 </button>
                 <button (click)="openEdit(listing)"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
-                  ✏️ Edit
+                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                  <lucide-icon [img]="PencilIcon" [size]="11"></lucide-icon>
+                  <span class="hidden sm:inline">Edit</span>
+                </button>
+                <button (click)="confirmDelete(listing.id)" [disabled]="deletingId === listing.id"
+                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition border border-red-100">
+                  <lucide-icon *ngIf="deletingId !== listing.id" [img]="Trash2Icon" [size]="11"></lucide-icon>
+                  <lucide-icon *ngIf="deletingId === listing.id" [img]="LoaderIcon" [size]="11" class="animate-spin"></lucide-icon>
+                  <span class="hidden sm:inline">Delete</span>
                 </button>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Student Profile Modal -->
+  <div *ngIf="selectedStudent" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" (click)="selectedStudent = null">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+            {{ selectedStudent.studentName?.charAt(0) }}
+          </div>
+          <div>
+            <p class="font-bold text-slate-900 text-sm">{{ selectedStudent.studentName }}</p>
+            <p class="text-xs text-slate-400">{{ selectedStudent.email }}</p>
+          </div>
+        </div>
+        <button (click)="selectedStudent = null" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition">
+          <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Match Score Bar -->
+      <div class="px-6 py-3 bg-indigo-600 flex items-center justify-between">
+        <span class="text-xs font-semibold text-indigo-200 uppercase tracking-wide">Match Score</span>
+        <span class="text-2xl font-bold text-white">{{ selectedStudent.score | number:'1.0-0' }}%</span>
+      </div>
+
+      <!-- Profile Details -->
+      <div class="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">GPA</p>
+            <p class="font-bold text-slate-800 text-sm">{{ selectedStudent.gpa ?? '—' }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">Grad Year</p>
+            <p class="font-bold text-slate-800 text-sm">{{ selectedStudent.gradYear ?? '—' }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">Resume</p>
+            <p class="font-bold text-sm" [class]="selectedStudent.hasResume ? 'text-emerald-600' : 'text-slate-400'">{{ selectedStudent.hasResume ? 'Yes ✓' : 'No' }}</p>
+          </div>
+        </div>
+
+        <!-- Work Auth & Mode -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Work Auth</p>
+            <span class="inline-flex px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 w-fit">
+              {{ selectedStudent.workAuthStatus?.replace('_', ' ') ?? '—' }}
+            </span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Preferred Mode</p>
+            <span class="inline-flex px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold border border-violet-100 w-fit">
+              {{ selectedStudent.preferredWorkMode ?? '—' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Locations -->
+        <div class="flex flex-col gap-1">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Preferred Locations</p>
+          <p class="text-sm text-slate-700">{{ selectedStudent.preferredLocations || '—' }}</p>
+        </div>
+
+        <!-- Sponsorship -->
+        <div *ngIf="selectedStudent.needsSponsorship" class="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <lucide-icon [img]="AlertTriangleIcon" [size]="13" class="text-amber-500"></lucide-icon>
+          <span class="text-xs font-semibold text-amber-700">Needs visa sponsorship</span>
+        </div>
+
+        <!-- Breakdown -->
+        <div class="space-y-2.5">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Match Breakdown</p>
+          <div *ngFor="let item of [
+            {label:'Skill Match', value: selectedStudent.breakdown?.skillScore, cls:'bg-indigo-500'},
+            {label:'GPA Fit',     value: selectedStudent.breakdown?.gpaScore,   cls:'bg-emerald-500'},
+            {label:'Work Auth',   value: selectedStudent.breakdown?.authScore,  cls:'bg-amber-500'}
+          ]">
+            <div class="flex justify-between mb-1">
+              <span class="text-xs text-slate-500">{{ item.label }}</span>
+              <span class="text-xs font-bold text-slate-700">{{ item.value | number:'1.0-0' }}%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div class="h-1.5 rounded-full transition-all" [class]="item.cls" [style.width.%]="item.value"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Matched / Missing Skills -->
+        <div *ngIf="selectedStudent.breakdown?.matchedSkills?.length" class="flex flex-col gap-1">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Matched Skills</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span *ngFor="let sk of selectedStudent.breakdown.matchedSkills"
+                  class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full border border-emerald-100">{{ sk }}</span>
+          </div>
+        </div>
+        <div *ngIf="selectedStudent.breakdown?.missingSkills?.length" class="flex flex-col gap-1">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Missing Skills</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span *ngFor="let sk of selectedStudent.breakdown.missingSkills"
+                  class="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-medium rounded-full border border-red-100">{{ sk }}</span>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 

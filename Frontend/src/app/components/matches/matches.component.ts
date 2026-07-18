@@ -1,17 +1,19 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 import { MatchService } from '../../services/match.service';
 import { ApplicationService } from '../../services/application.service';
 import { StudentService } from '../../services/student.service';
 import { MatchCardComponent } from '../match-card/match-card.component';
 import { MatchCard } from '../../models/match.model';
+import { LucideAngularModule, Filter, TrendingUp, Clock, Search, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-angular';
 
 @Component({
   selector: 'app-matches',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatchCardComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatchCardComponent, LucideAngularModule],
   templateUrl: './matches.component.html',
 })
 export class MatchesComponent implements OnInit {
@@ -20,11 +22,19 @@ export class MatchesComponent implements OnInit {
   private applicationService = inject(ApplicationService);
   private studentService = inject(StudentService);
 
+  readonly FilterIcon = Filter;
+  readonly TrendingUpIcon = TrendingUp;
+  readonly ClockIcon = Clock;
+  readonly SearchIcon = Search;
+  readonly AlertIcon = AlertCircle;
+  readonly ChevronLeftIcon = ChevronLeft;
+  readonly ChevronRightIcon = ChevronRight;
+
   studentId = this.studentService.getSavedStudentId() ?? 1;
 
   matches: MatchCard[] = [];
   appliedListingIds = new Set<number>();
-  loading = false;
+  loading = true;
   error = '';
 
   page = 0;
@@ -42,8 +52,22 @@ export class MatchesComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    this.loadApplied();
-    this.fetchMatches();
+    this.loading = true;
+    forkJoin({
+      matches: this.matchService.getMatches(this.studentId, {}, 0, this.pageSize, this.sort),
+      applied: this.applicationService.listForStudent(this.studentId).pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({ matches, applied }) => {
+        this.matches = matches.content;
+        this.totalPages = matches.totalPages;
+        this.appliedListingIds = new Set(applied.map((a: any) => a.listingId));
+        this.loading = false;
+      },
+      error: err => {
+        this.error = 'Could not load matches: ' + (err?.error?.message || 'unknown error');
+        this.loading = false;
+      }
+    });
 
     this.filterForm.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)))
@@ -76,7 +100,6 @@ export class MatchesComponent implements OnInit {
       this.appliedListingIds = new Set(apps.map(a => a.listingId));
     });
   }
-
   onApply(listingId: number): void {
     this.applicationService.markApplied(this.studentId, listingId).subscribe({
       next: () => this.appliedListingIds.add(listingId),

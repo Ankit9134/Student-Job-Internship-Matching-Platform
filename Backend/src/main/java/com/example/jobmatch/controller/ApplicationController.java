@@ -27,6 +27,12 @@ public class ApplicationController {
 
     @PatchMapping("/api/applications/{applicationId}")
     public ApplicationResponse updateStatus(@PathVariable Long applicationId, @RequestBody UpdateStatusRequest req) {
-        return applicationService.updateStatus(applicationId, req.getStatus());
+        return applicationService.updateStatus(applicationId, req.getStatus(), req.getNotes());
+    }
+
+    @DeleteMapping("/api/applications/{applicationId}")
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long applicationId) {
+        applicationService.delete(applicationId);
     }
 }

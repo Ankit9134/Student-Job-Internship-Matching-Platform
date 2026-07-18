@@ -27,7 +27,19 @@ export class ListingService {
     return this.http.put<Listing>(`${this.base}/${id}`, payload);
   }
 
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
   /** Recruiter-side (stretch): top matching students for a listing. */
+  getAllApplicantCounts(): Observable<Record<number, number>> {
+    return this.http.get<Record<number, number>>(`${this.base}/applicants/counts`);
+  }
+
+  getApplicantCount(listingId: number): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.base}/${listingId}/applicants/count`);
+  }
+
   getMatchingStudents(listingId: number, page = 0, size = 10) {
     return this.http.get<PagedResponse<any>>(`${this.base}/${listingId}/matches`, {
       params: { page, size } as any

@@ -1,121 +1,153 @@
-<div [class]="'bg-white rounded-2xl border-l-4 border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ' +
-  (scoreTier() === 'high' ? 'border-l-emerald-500' : scoreTier() === 'mid' ? 'border-l-amber-400' : 'border-l-red-400')">
+<div [class]="'bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 ' +
+  (scoreTier()==='high' ? 'border-l-4 border-l-emerald-500' : scoreTier()==='mid' ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400')">
 
-  <!-- Top Row: Title + Score Badge -->
+  <!-- Top Row -->
   <div class="flex justify-between items-start gap-3 mb-3">
     <div class="flex-1 min-w-0">
-      <h3 class="text-base font-bold text-slate-900 truncate">{{ match.title }}</h3>
-      <p class="text-sm text-slate-500 mt-0.5">🏢 {{ match.company }}</p>
-    </div>
-
-    <!-- Score Badge -->
-    <div class="flex flex-col items-center shrink-0">
-      <div [class]="'w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold border-4 ' +
-        (scoreTier() === 'high' ? 'border-emerald-500 text-emerald-700 bg-emerald-50' :
-         scoreTier() === 'mid'  ? 'border-amber-400 text-amber-700 bg-amber-50' :
-                                  'border-red-400 text-red-700 bg-red-50')">
-        {{ match.score | matchScore:'percent' }}
+      <div *ngIf="loading" class="h-4 bg-slate-200 rounded-full w-2/5 mb-2 animate-pulse"></div>
+      <div *ngIf="loading" class="h-3 bg-slate-100 rounded-full w-1/4 animate-pulse"></div>
+      <h3 *ngIf="!loading" class="text-sm sm:text-base font-bold text-slate-900 truncate leading-snug">{{ match.title }}</h3>
+      <div *ngIf="!loading" class="flex items-center gap-1.5 mt-1">
+        <lucide-icon [img]="Building2" [size]="12" class="text-slate-400 shrink-0"></lucide-icon>
+        <p class="text-xs sm:text-sm text-slate-500 truncate font-medium">{{ match.company }}</p>
       </div>
-      <span class="text-xs text-slate-400 mt-1 whitespace-nowrap">{{ match.score | matchScore:'label' }}</span>
+    </div>
+    <!-- Score Ring -->
+    <div class="flex flex-col items-center shrink-0">
+      <div [class]="'rounded-full flex items-center justify-center border-[3px] ' +
+        (loading ? 'border-slate-200 bg-slate-50' :
+         scoreTier()==='high' ? 'border-emerald-500 text-emerald-700 bg-emerald-50' :
+         scoreTier()==='mid'  ? 'border-amber-400 text-amber-700 bg-amber-50' :
+                                'border-red-400 text-red-700 bg-red-50')"
+           style="width:52px;height:52px">
+        <lucide-icon *ngIf="loading" [img]="Loader" [size]="20" class="text-indigo-400 animate-spin"></lucide-icon>
+        <span *ngIf="!loading" class="text-xs sm:text-sm font-bold">{{ match.score | matchScore:'percent' }}</span>
+      </div>
+      <span *ngIf="!loading" class="text-xs font-medium mt-1 whitespace-nowrap hidden sm:block"
+            [class]="scoreTier()==='high' ? 'text-emerald-600' : scoreTier()==='mid' ? 'text-amber-600' : 'text-red-500'">
+        {{ match.score | matchScore:'label' }}
+      </span>
+      <span *ngIf="loading" class="text-xs text-slate-400 mt-1 hidden sm:block">Loading...</span>
     </div>
   </div>
 
-  <!-- Stars -->
-  <div class="text-base text-amber-400 mb-3 tracking-wide">
-    {{ match.score | matchScore:'stars' }}
+  <!-- Tags -->
+  <div *ngIf="loading" class="flex gap-2 mb-3">
+    <div *ngFor="let i of [1,2,3]" class="h-6 bg-slate-100 rounded-full animate-pulse" [style.width.px]="i===1?60:i===2?72:56"></div>
   </div>
-
-  <!-- Tags Row -->
-  <div class="flex flex-wrap gap-1.5 mb-3">
-    <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
-      📍 {{ match.location || 'Location TBD' }}
+  <div *ngIf="!loading" class="flex flex-wrap gap-1.5 mb-3">
+    <span class="flex items-center gap-1 bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
+      <lucide-icon [img]="MapPin" [size]="10"></lucide-icon>
+      {{ match.location || 'TBD' }}
     </span>
-    <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
-      {{ match.workMode === 'REMOTE' ? '🏠' : match.workMode === 'HYBRID' ? '🔀' : '🏢' }} {{ match.workMode }}
+    <span class="flex items-center gap-1 bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
+      <lucide-icon [img]="workModeIcon()" [size]="10"></lucide-icon>
+      {{ match.workMode }}
     </span>
-    <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
-      {{ match.roleType === 'INTERNSHIP' ? '🎓 Internship' : '💼 Full-time' }}
+    <span [class]="match.roleType==='INTERNSHIP'
+      ? 'flex items-center gap-1 bg-violet-50 text-violet-700 text-xs px-2.5 py-1 rounded-full font-medium border border-violet-100'
+      : 'flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full font-medium border border-blue-100'">
+      <lucide-icon [img]="match.roleType==='INTERNSHIP' ? GraduationCap : Briefcase" [size]="10"></lucide-icon>
+      {{ match.roleType === 'INTERNSHIP' ? 'Internship' : 'Full-time' }}
     </span>
     <span [class]="match.sponsorshipOffered
-      ? 'bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium border border-emerald-200'
-      : 'bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full font-medium'">
-      {{ match.sponsorshipOffered ? '✅ Sponsorship offered' : '❌ No sponsorship' }}
+      ? 'flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium border border-emerald-200'
+      : 'flex items-center gap-1 bg-slate-100 text-slate-400 text-xs px-2.5 py-1 rounded-full font-medium'">
+      <lucide-icon [img]="match.sponsorshipOffered ? CheckCircle : XCircle" [size]="10"></lucide-icon>
+      {{ match.sponsorshipOffered ? 'Sponsorship' : 'No sponsorship' }}
     </span>
   </div>
 
-  <!-- Matched Skills Preview -->
+  <!-- Matched Skills -->
   <div *ngIf="match.breakdown.matchedSkills.length" class="flex flex-wrap gap-1.5 mb-3">
-    <span *ngFor="let skill of match.breakdown.matchedSkills.slice(0, 5)"
-          class="bg-indigo-50 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium border border-indigo-100">
-      ✓ {{ skill }}
+    <span *ngFor="let skill of match.breakdown.matchedSkills.slice(0,5)"
+          class="flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium border border-indigo-100">
+      <lucide-icon [img]="CheckCircle" [size]="9"></lucide-icon> {{ skill }}
     </span>
     <span *ngIf="match.breakdown.matchedSkills.length > 5"
-          class="bg-indigo-50 text-indigo-500 text-xs px-2.5 py-1 rounded-full font-medium">
+          class="bg-indigo-50 text-indigo-400 text-xs px-2.5 py-1 rounded-full font-medium border border-indigo-100">
       +{{ match.breakdown.matchedSkills.length - 5 }} more
     </span>
   </div>
 
-  <!-- Divider -->
   <div class="border-t border-slate-100 my-3"></div>
 
-  <!-- Bottom Row: Explain + Apply -->
+  <!-- Actions -->
   <div class="flex items-center justify-between">
     <button type="button" (click)="toggleBreakdown()"
-            class="text-indigo-600 text-xs font-semibold hover:text-indigo-800 transition flex items-center gap-1">
-      {{ showBreakdown ? '▲ Hide details' : '▼ Why this match?' }}
+            class="flex items-center gap-1.5 text-indigo-600 text-xs font-semibold hover:text-indigo-800 transition">
+      <lucide-icon [img]="showBreakdown ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+      {{ showBreakdown ? 'Hide details' : 'Why this match?' }}
     </button>
-
     <button type="button" [disabled]="alreadyApplied" (click)="onApply()"
             [class]="alreadyApplied
-              ? 'px-4 py-1.5 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default'
-              : 'px-4 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm'">
-      {{ alreadyApplied ? '✅ Applied' : 'Mark as Applied' }}
+              ? 'flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default'
+              : 'flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 transition shadow-sm shadow-indigo-200'">
+      <lucide-icon [img]="alreadyApplied ? CheckCircle : Briefcase" [size]="12"></lucide-icon>
+      {{ alreadyApplied ? 'Applied ✓' : 'Mark Applied' }}
     </button>
   </div>
 
   <!-- Breakdown Panel -->
-  <div *ngIf="showBreakdown" class="mt-3 bg-slate-50 rounded-xl p-4 text-xs text-slate-700 space-y-2 border border-slate-100">
-    <p class="font-semibold text-slate-600 mb-2">📊 Match Breakdown</p>
-
-    <!-- Score Bars -->
-    <div class="space-y-2">
+  <div *ngIf="showBreakdown" class="mt-3 bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-xl p-4 border border-slate-100 space-y-3">
+    <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 uppercase tracking-wide">
+      <lucide-icon [img]="TrendingUp" [size]="12" class="text-indigo-500"></lucide-icon> Match Breakdown
+    </p>
+    <div class="space-y-2.5">
       <div>
-        <div class="flex justify-between mb-1">
-          <span class="font-medium">🧠 Skill Match</span>
-          <span class="font-bold text-indigo-600">{{ match.breakdown.skillScore }}%</span>
+        <div class="flex justify-between mb-1.5">
+          <span class="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+            <lucide-icon [img]="Zap" [size]="11" class="text-indigo-500"></lucide-icon> Skill Match
+          </span>
+          <span class="text-xs font-bold text-indigo-600">{{ match.breakdown.skillScore }}%</span>
         </div>
         <div class="w-full bg-slate-200 rounded-full h-1.5">
-          <div class="bg-indigo-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.skillScore"></div>
+          <div class="bg-gradient-to-r from-indigo-500 to-violet-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.skillScore"></div>
         </div>
       </div>
       <div>
-        <div class="flex justify-between mb-1">
-          <span class="font-medium">📈 GPA Fit</span>
-          <span class="font-bold text-indigo-600">{{ match.breakdown.gpaScore }}%</span>
+        <div class="flex justify-between mb-1.5">
+          <span class="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+            <lucide-icon [img]="TrendingUp" [size]="11" class="text-emerald-500"></lucide-icon> GPA Fit
+          </span>
+          <span class="text-xs font-bold text-emerald-600">{{ match.breakdown.gpaScore }}%</span>
         </div>
         <div class="w-full bg-slate-200 rounded-full h-1.5">
-          <div class="bg-indigo-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.gpaScore"></div>
+          <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.gpaScore"></div>
         </div>
       </div>
       <div>
-        <div class="flex justify-between mb-1">
-          <span class="font-medium">🛂 Auth Fit</span>
-          <span class="font-bold text-indigo-600">{{ match.breakdown.authScore }}%</span>
+        <div class="flex justify-between mb-1.5">
+          <span class="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+            <lucide-icon [img]="Shield" [size]="11" class="text-amber-500"></lucide-icon> Work Auth
+          </span>
+          <span class="text-xs font-bold text-amber-600">{{ match.breakdown.authScore }}%</span>
         </div>
         <div class="w-full bg-slate-200 rounded-full h-1.5">
-          <div class="bg-indigo-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.authScore"></div>
+          <div class="bg-gradient-to-r from-amber-400 to-orange-400 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.authScore"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-1.5">
+          <span class="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+            <lucide-icon [img]="Monitor" [size]="11" class="text-violet-500"></lucide-icon> Work Mode
+          </span>
+          <span class="text-xs font-bold text-violet-600">{{ match.breakdown.modeScore }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div class="bg-gradient-to-r from-violet-400 to-purple-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.modeScore"></div>
         </div>
       </div>
     </div>
-
-    <div *ngIf="match.breakdown.matchedSkills.length" class="pt-1">
-      <span class="font-semibold text-emerald-700">✓ Matched:</span>
-      {{ match.breakdown.matchedSkills.join(', ') }}
-    </div>
-    <div *ngIf="match.breakdown.missingSkills.length" class="pt-1">
-      <span class="font-semibold text-red-500">✗ Missing:</span>
-      {{ match.breakdown.missingSkills.join(', ') }}
+    <div class="pt-1 space-y-1.5">
+      <div *ngIf="match.breakdown.matchedSkills.length" class="flex items-start gap-1.5">
+        <lucide-icon [img]="CheckCircle" [size]="12" class="text-emerald-500 mt-0.5 shrink-0"></lucide-icon>
+        <span class="text-xs text-slate-600"><strong class="text-emerald-700">Matched:</strong> {{ match.breakdown.matchedSkills.join(', ') }}</span>
+      </div>
+      <div *ngIf="match.breakdown.missingSkills.length" class="flex items-start gap-1.5">
+        <lucide-icon [img]="XCircle" [size]="12" class="text-red-400 mt-0.5 shrink-0"></lucide-icon>
+        <span class="text-xs text-slate-600"><strong class="text-red-500">Missing:</strong> {{ match.breakdown.missingSkills.join(', ') }}</span>
+      </div>
     </div>
   </div>
-
 </div>

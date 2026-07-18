@@ -15,5 +15,8 @@ public interface StudentSkillRepository extends JpaRepository<StudentSkill, Stud
 
     List<StudentSkill> findByStudentId(Long studentId);
 
+    @Query("SELECT ss FROM StudentSkill ss WHERE ss.studentId IN :studentIds")
+    List<StudentSkill> findByStudentIdIn(@Param("studentIds") Set<Long> studentIds);
+
     void deleteByStudentId(Long studentId);
 }

@@ -20,10 +20,14 @@ export class ApplicationService {
     return this.http.get<ApplicationRecord[]>(`${environment.apiBaseUrl}/students/${studentId}/applications`);
   }
 
-  updateStatus(applicationId: number, status: ApplicationStatus): Observable<ApplicationRecord> {
+  updateStatus(applicationId: number, status: ApplicationStatus, notes?: string): Observable<ApplicationRecord> {
     return this.http.patch<ApplicationRecord>(
       `${environment.apiBaseUrl}/applications/${applicationId}`,
-      { status }
+      { status, notes }
     );
+  }
+
+  delete(applicationId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiBaseUrl}/applications/${applicationId}`);
   }
 }

@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,43 +24,47 @@ public class ApplicationService {
 
     @Transactional
     public ApplicationResponse markApplied(Long studentId, Long listingId) {
-        applicationRepo.findByStudentIdAndListingId(studentId, listingId).ifPresent(a -> {
-            throw new IllegalArgumentException("Already applied to this listing");
-        });
-
-        Listing listing = listingRepo.findById(listingId)
-            .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + listingId));
-
-        Application application = Application.builder()
-            .studentId(studentId)
-            .listingId(listingId)
-            .status(ApplicationStatus.APPLIED)
-            .appliedAt(Instant.now())
-            .build();
-
-        Application saved = applicationRepo.save(application);
-        return toResponse(saved, listing);
+        return applicationRepo.findByStudentIdAndListingId(studentId, listingId)
+            .map(existing -> {
+                Listing listing = listingRepo.findById(listingId).orElse(null);
+                return toResponse(existing, listing);
+            })
+            .orElseGet(() -> {
+                Listing listing = listingRepo.findById(listingId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + listingId));
+                Application application = Application.builder()
+                    .studentId(studentId)
+                    .listingId(listingId)
+                    .status(ApplicationStatus.APPLIED)
+                    .appliedAt(Instant.now())
+                    .build();
+                return toResponse(applicationRepo.save(application), listing);
+            });
     }
 
     @Transactional
-    public ApplicationResponse updateStatus(Long applicationId, ApplicationStatus status) {
+    public ApplicationResponse updateStatus(Long applicationId, ApplicationStatus status, String notes) {
         Application application = applicationRepo.findById(applicationId)
             .orElseThrow(() -> new ResourceNotFoundException("Application not found: " + applicationId));
         application.setStatus(status);
+        if (notes != null) application.setNotes(notes);
         Application saved = applicationRepo.save(application);
         Listing listing = listingRepo.findById(saved.getListingId()).orElse(null);
         return toResponse(saved, listing);
     }
 
+    @Transactional
+    public void delete(Long applicationId) {
+        if (!applicationRepo.existsById(applicationId))
+            throw new ResourceNotFoundException("Application not found: " + applicationId);
+        applicationRepo.deleteById(applicationId);
+    }
+
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getForStudent(Long studentId) {
-        List<Application> applications = applicationRepo.findByStudentId(studentId);
-        Map<Long, Listing> listingMap = listingRepo.findAllById(
-            applications.stream().map(Application::getListingId).collect(Collectors.toList())
-        ).stream().collect(Collectors.toMap(Listing::getId, l -> l));
-
-        return applications.stream()
-            .map(a -> toResponse(a, listingMap.get(a.getListingId())))
+        return applicationRepo.findByStudentIdWithListing(studentId)
+            .stream()
+            .map(a -> toResponse(a, a.getListing()))
             .collect(Collectors.toList());
     }
 
@@ -73,6 +76,7 @@ public class ApplicationService {
             .companyName(listing != null ? listing.getCompanyName() : "Unknown")
             .status(a.getStatus())
             .appliedAt(a.getAppliedAt())
+            .notes(a.getNotes())
             .build();
     }
 }

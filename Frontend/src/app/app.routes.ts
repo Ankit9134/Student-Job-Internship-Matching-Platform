@@ -1,13 +1,12 @@
 import { Routes } from '@angular/router';
-import { ProfileComponent } from './components/profile/profile.component';
-import { MatchesComponent } from './components/matches/matches.component';
-import { ApplicationsComponent } from './components/applications/applications.component';
-import { AdminComponent } from './components/admin/admin.component';
+import { studentGuard, recruiterGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'profile', pathMatch: 'full' },
-  { path: 'profile', component: ProfileComponent },
-  { path: 'matches', component: MatchesComponent },
-  { path: 'applications', component: ApplicationsComponent },
-  { path: 'admin', component: AdminComponent },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', loadComponent: () => import('./components/auth/auth.component').then(m => m.AuthComponent) },
+  { path: 'profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent), canActivate: [studentGuard] },
+  { path: 'matches', loadComponent: () => import('./components/matches/matches.component').then(m => m.MatchesComponent), canActivate: [studentGuard] },
+  { path: 'applications', loadComponent: () => import('./components/applications/applications.component').then(m => m.ApplicationsComponent), canActivate: [studentGuard] },
+  { path: 'admin', loadComponent: () => import('./components/admin/admin.component').then(m => m.AdminComponent), canActivate: [recruiterGuard] },
+  { path: '**', redirectTo: 'login' },
 ];

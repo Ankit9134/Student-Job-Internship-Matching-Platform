@@ -2,8 +2,10 @@ package com.example.jobmatch.service;
 
 import com.example.jobmatch.config.MatchingWeightsConfig;
 import com.example.jobmatch.entity.*;
+import com.example.jobmatch.entity.Enums;
 import com.example.jobmatch.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,57 +33,80 @@ public class MatchingService {
     private final SkillRepository skillRepo;
     private final MatchingWeightsConfig weights;
 
-    @Transactional
+    @Async
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void recomputeForStudent(Long studentId) {
         Student student = studentRepo.findById(studentId)
             .orElseThrow(() -> new IllegalArgumentException("Student not found: " + studentId));
         Set<Long> studentSkillIds = studentSkillRepo.findSkillIdsByStudent(studentId);
         Map<Long, String> skillNames = loadSkillNames();
+        Map<Long, List<ListingSkill>> listingSkillsMap = loadListingSkillsMap();
 
         List<Listing> activeListings = listingRepo.findAllByActiveTrue();
         List<MatchResult> results = activeListings.stream()
-            .map(listing -> score(student, listing, studentSkillIds, skillNames))
+            .map(listing -> score(student, listing, studentSkillIds, skillNames, listingSkillsMap.getOrDefault(listing.getId(), List.of())))
             .collect(Collectors.toList());
 
         matchRepo.saveAll(results);
     }
 
-    @Transactional
+    @Async
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void recomputeForListing(Long listingId) {
         Listing listing = listingRepo.findById(listingId)
             .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
         Map<Long, String> skillNames = loadSkillNames();
+        List<ListingSkill> listingSkills = listingSkillRepo.findByListingId(listingId);
 
         List<Student> students = studentRepo.findAll();
+        Set<Long> studentIds = students.stream().map(Student::getId).collect(Collectors.toSet());
+
+        Map<Long, Set<Long>> allStudentSkills = studentSkillRepo.findByStudentIdIn(studentIds).stream()
+            .collect(Collectors.groupingBy(
+                com.example.jobmatch.entity.StudentSkill::getStudentId,
+                Collectors.mapping(com.example.jobmatch.entity.StudentSkill::getSkillId, Collectors.toSet())
+            ));
         List<MatchResult> results = students.stream()
-            .map(student -> score(student, listing, studentSkillRepo.findSkillIdsByStudent(student.getId()), skillNames))
+            .map(student -> score(student, listing,
+                allStudentSkills.getOrDefault(student.getId(), Set.of()),
+                skillNames, listingSkills))
             .collect(Collectors.toList());
 
         matchRepo.saveAll(results);
     }
 
-    /** Recomputes the entire matrix. Intended for a scheduled/nightly safety-net job. */
     @Transactional
     public void recomputeAll() {
         List<Student> students = studentRepo.findAll();
         List<Listing> listings = listingRepo.findAllByActiveTrue();
         Map<Long, String> skillNames = loadSkillNames();
+        Map<Long, List<ListingSkill>> listingSkillsMap = loadListingSkillsMap();
+
+        Map<Long, Set<Long>> allStudentSkills = studentSkillRepo.findAll().stream()
+            .collect(Collectors.groupingBy(
+                com.example.jobmatch.entity.StudentSkill::getStudentId,
+                Collectors.mapping(com.example.jobmatch.entity.StudentSkill::getSkillId, Collectors.toSet())
+            ));
 
         for (Student student : students) {
-            Set<Long> studentSkillIds = studentSkillRepo.findSkillIdsByStudent(student.getId());
+            Set<Long> studentSkillIds = allStudentSkills.getOrDefault(student.getId(), Set.of());
             List<MatchResult> results = listings.stream()
-                .map(listing -> score(student, listing, studentSkillIds, skillNames))
+                .map(listing -> score(student, listing, studentSkillIds, skillNames, listingSkillsMap.getOrDefault(listing.getId(), List.of())))
                 .collect(Collectors.toList());
             matchRepo.saveAll(results);
         }
+    }
+
+    private Map<Long, List<ListingSkill>> loadListingSkillsMap() {
+        return listingSkillRepo.findAll().stream()
+            .collect(Collectors.groupingBy(ListingSkill::getListingId));
     }
 
     private Map<Long, String> loadSkillNames() {
         return skillRepo.findAll().stream().collect(Collectors.toMap(Skill::getId, Skill::getName));
     }
 
-    private MatchResult score(Student student, Listing listing, Set<Long> studentSkillIds, Map<Long, String> skillNames) {
-        List<ListingSkill> listingSkills = listingSkillRepo.findByListingId(listing.getId());
+    private MatchResult score(Student student, Listing listing, Set<Long> studentSkillIds, Map<Long, String> skillNames, List<ListingSkill> listingSkills) {
 
         // ---- Skill score: weighted overlap ----
         int totalWeight = listingSkills.stream().mapToInt(ls -> nz(ls.getWeight())).sum();
@@ -102,7 +127,7 @@ public class MatchingService {
             .map(id -> skillNames.getOrDefault(id, "Unknown"))
             .collect(Collectors.toList());
 
-        // ---- GPA score: hard pass at threshold, linear taper below it ----
+        // ---- GPA score: linear taper below threshold, normalized over max GPA (10) ----
         double gpaScore;
         BigDecimal minGpa = listing.getMinGpa();
         BigDecimal studentGpa = student.getGpa();
@@ -111,16 +136,45 @@ public class MatchingService {
         } else if (studentGpa != null && studentGpa.compareTo(minGpa) >= 0) {
             gpaScore = 100.0;
         } else {
-            double gap = minGpa.doubleValue() - (studentGpa == null ? 0 : studentGpa.doubleValue());
-            gpaScore = Math.max(0, 100.0 * (1 - gap));
+            double sGpa = studentGpa == null ? 0.0 : studentGpa.doubleValue();
+            double mGpa = minGpa.doubleValue();
+            // linear: 0% at GPA=0, 100% at GPA=minGpa
+            gpaScore = Math.max(0.0, 100.0 * sGpa / mGpa);
         }
 
-        // ---- Work-auth score: binary compatibility check ----
-        double authScore = (listing.isSponsorshipOffered() || !student.isNeedsSponsorship()) ? 100.0 : 0.0;
+        // ---- Work-auth score: tiered by visa/sponsorship compatibility ----
+        double authScore;
+        boolean sponsorshipNeeded = student.isNeedsSponsorship();
+        boolean sponsorshipOffered = listing.isSponsorshipOffered();
+        Enums.WorkAuthStatus authStatus = student.getWorkAuthStatus();
+        if (authStatus == Enums.WorkAuthStatus.CITIZEN || authStatus == Enums.WorkAuthStatus.PERM_RESIDENT) {
+            authScore = 100.0; // never needs sponsorship
+        } else if (!sponsorshipNeeded) {
+            authScore = 90.0;  // on OPT/other but self-sufficient
+        } else if (sponsorshipOffered) {
+            authScore = 80.0;  // needs sponsorship and listing offers it
+        } else {
+            authScore = 0.0;   // needs sponsorship but listing doesn't offer it
+        }
+
+        // ---- Work-mode score: preference alignment ----
+        double modeScore;
+        Enums.WorkMode preferred = student.getPreferredWorkMode();
+        Enums.WorkMode offered   = listing.getWorkMode();
+        if (preferred == null || preferred == Enums.WorkMode.ANY) {
+            modeScore = 100.0;
+        } else if (preferred == offered) {
+            modeScore = 100.0;
+        } else if (offered == Enums.WorkMode.HYBRID) {
+            modeScore = 60.0;  // hybrid is a partial match for remote/onsite preference
+        } else {
+            modeScore = 20.0;  // mismatch
+        }
 
         double finalScore = skillScore * weights.getWeightSkill()
-            + gpaScore * weights.getWeightGpa()
-            + authScore * weights.getWeightAuth();
+            + gpaScore  * weights.getWeightGpa()
+            + authScore * weights.getWeightAuth()
+            + modeScore * weights.getWeightMode();
 
         return MatchResult.builder()
             .studentId(student.getId())
@@ -129,6 +183,7 @@ public class MatchingService {
             .skillScore(round(skillScore))
             .gpaScore(round(gpaScore))
             .authScore(round(authScore))
+            .modeScore(round(modeScore))
             .matchedSkills(String.join(",", matchedNames))
             .missingSkills(String.join(",", missingNames))
             .computedAt(Instant.now())
