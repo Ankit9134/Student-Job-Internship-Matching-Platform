@@ -11,7 +11,16 @@ import { LucideAngularModule, MapPin, Monitor, Home, Building2, GraduationCap, B
   templateUrl: './match-card.component.html',
 })
 export class MatchCardComponent {
-  @Input({ required: true }) match!: MatchCard;
+  @Input({ required: true }) set match(val: MatchCard) {
+    this._match = val;
+    this._scoreTier = val.score >= 75 ? 'high' : val.score >= 45 ? 'mid' : 'low';
+    this._workModeIcon = val.workMode === 'REMOTE' ? this.Home : val.workMode === 'ONSITE' ? this.Building2 : this.Monitor;
+  }
+  get match(): MatchCard { return this._match; }
+  private _match!: MatchCard;
+  _scoreTier: 'high' | 'mid' | 'low' = 'low';
+  _workModeIcon: any;
+
   @Input() alreadyApplied = false;
   @Input() loading = false;
   @Output() applyClicked = new EventEmitter<number>();
@@ -35,16 +44,4 @@ export class MatchCardComponent {
 
   toggleBreakdown() { this.showBreakdown = !this.showBreakdown; }
   onApply() { this.applyClicked.emit(this.match.listingId); }
-
-  scoreTier(): 'high' | 'mid' | 'low' {
-    if (this.match.score >= 75) return 'high';
-    if (this.match.score >= 45) return 'mid';
-    return 'low';
-  }
-
-  workModeIcon() {
-    if (this.match.workMode === 'REMOTE') return this.Home;
-    if (this.match.workMode === 'ONSITE') return this.Building2;
-    return this.Monitor;
-  }
 }

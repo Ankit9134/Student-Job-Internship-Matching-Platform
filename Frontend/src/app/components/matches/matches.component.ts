@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
-import { forkJoin, of } from 'rxjs';
+import { of } from 'rxjs';
 import { MatchService } from '../../services/match.service';
 import { ApplicationService } from '../../services/application.service';
 import { StudentService } from '../../services/student.service';
@@ -52,15 +52,10 @@ export class MatchesComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    this.loading = true;
-    forkJoin({
-      matches: this.matchService.getMatches(this.studentId, {}, 0, this.pageSize, this.sort),
-      applied: this.applicationService.listForStudent(this.studentId).pipe(catchError(() => of([])))
-    }).subscribe({
-      next: ({ matches, applied }) => {
+    this.matchService.getMatches(this.studentId, {}, 0, this.pageSize, this.sort).subscribe({
+      next: matches => {
         this.matches = matches.content;
         this.totalPages = matches.totalPages;
-        this.appliedListingIds = new Set(applied.map((a: any) => a.listingId));
         this.loading = false;
       },
       error: err => {
@@ -69,8 +64,12 @@ export class MatchesComponent implements OnInit {
       }
     });
 
+    this.applicationService.listForStudent(this.studentId).pipe(catchError(() => of([]))).subscribe(applied => {
+      this.appliedListingIds = new Set(applied.map((a: any) => a.listingId));
+    });
+
     this.filterForm.valueChanges
-      .pipe(debounceTime(300), distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)))
+      .pipe(debounceTime(400), distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)))
       .subscribe(() => {
         this.page = 0;
         this.fetchMatches();

@@ -6,6 +6,7 @@ import com.example.jobmatch.dto.MatchDtos.PagedResponse;
 import com.example.jobmatch.dto.MatchDtos.StudentMatchResponse;
 import com.example.jobmatch.entity.Listing;
 import com.example.jobmatch.repository.ApplicationRepository;
+import com.example.jobmatch.repository.UserRepository;
 import com.example.jobmatch.service.ListingService;
 import com.example.jobmatch.service.MatchQueryService;
 import com.example.jobmatch.service.MatchingService;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -29,11 +31,14 @@ public class ListingController {
     private final MatchingService matchingService;
     private final MatchQueryService matchQueryService;
     private final ApplicationRepository applicationRepository;
+    private final UserRepository userRepo;
 
     @PostMapping
     public ListingResponse create(@Valid @RequestBody ListingRequest req) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        userRepo.findByEmail(email).ifPresent(user -> req.setCreatedBy(user.getId()));
         Listing saved = listingService.create(req);
-        matchingService.recomputeForListing(saved.getId()); // score this new listing against every student
+        matchingService.recomputeForListing(saved.getId());
         return listingService.toResponse(saved);
     }
 
@@ -66,10 +71,10 @@ public class ListingController {
 
     @GetMapping("/applicants/counts")
     public Map<Long, Long> getAllApplicantCounts() {
-        return applicationRepository.findAll().stream()
-            .collect(Collectors.groupingBy(
-                com.example.jobmatch.entity.Application::getListingId,
-                Collectors.counting()
+        return applicationRepository.countGroupedByListing().stream()
+            .collect(Collectors.toMap(
+                row -> (Long) row[0],
+                row -> (Long) row[1]
             ));
     }
 

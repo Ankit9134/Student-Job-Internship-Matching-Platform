@@ -47,7 +47,11 @@ export class AuthService {
     localStorage.setItem('role', res.role);
     localStorage.setItem('fullName', res.fullName);
     localStorage.setItem('userId', String(res.userId));
-    if (res.studentId) localStorage.setItem('studentId', String(res.studentId));
+    if (res.studentId) {
+      localStorage.setItem('studentId', String(res.studentId));
+    } else {
+      localStorage.removeItem('studentId');
+    }
   }
 
   logout(): void {

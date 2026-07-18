@@ -47,12 +47,8 @@ public class MatchQueryService {
             studentId, role, location, workMode, sponsorshipNeeded, pageable
         );
 
-        List<Long> listingIds = results.getContent().stream().map(MatchResult::getListingId).collect(Collectors.toList());
-        Map<Long, Listing> listingMap = listingRepo.findAllById(listingIds).stream()
-            .collect(Collectors.toMap(Listing::getId, l -> l));
-
         List<MatchCardResponse> content = results.getContent().stream()
-            .map(mr -> toCard(mr, listingMap.get(mr.getListingId())))
+            .map(mr -> toCard(mr, mr.getListing()))
             .collect(Collectors.toList());
 
         return PagedResponse.<MatchCardResponse>builder()

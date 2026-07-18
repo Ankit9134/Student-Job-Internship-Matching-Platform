@@ -25,6 +25,10 @@ public class MatchResult {
     @Column(name = "listing_id")
     private Long listingId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "listing_id", insertable = false, updatable = false)
+    private Listing listing;
+
     @Column(nullable = false)
     private BigDecimal score;
 

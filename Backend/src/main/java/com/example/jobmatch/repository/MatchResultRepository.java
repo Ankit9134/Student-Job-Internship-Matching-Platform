@@ -16,7 +16,7 @@ public interface MatchResultRepository extends JpaRepository<MatchResult, MatchR
      */
     @Query("""
         SELECT mr FROM MatchResult mr
-        JOIN Listing l ON l.id = mr.listingId
+        JOIN FETCH mr.listing l
         WHERE mr.studentId = :studentId
           AND l.active = true
           AND (:role IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :role, '%')))

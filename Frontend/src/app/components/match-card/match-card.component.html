@@ -1,5 +1,5 @@
 <div [class]="'bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 ' +
-  (scoreTier()==='high' ? 'border-l-4 border-l-emerald-500' : scoreTier()==='mid' ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400')">
+  (_scoreTier==='high' ? 'border-l-4 border-l-emerald-500' : _scoreTier==='mid' ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-red-400')">
 
   <!-- Top Row -->
   <div class="flex justify-between items-start gap-3 mb-3">
@@ -16,15 +16,15 @@
     <div class="flex flex-col items-center shrink-0">
       <div [class]="'rounded-full flex items-center justify-center border-[3px] ' +
         (loading ? 'border-slate-200 bg-slate-50' :
-         scoreTier()==='high' ? 'border-emerald-500 text-emerald-700 bg-emerald-50' :
-         scoreTier()==='mid'  ? 'border-amber-400 text-amber-700 bg-amber-50' :
+         _scoreTier==='high' ? 'border-emerald-500 text-emerald-700 bg-emerald-50' :
+         _scoreTier==='mid'  ? 'border-amber-400 text-amber-700 bg-amber-50' :
                                 'border-red-400 text-red-700 bg-red-50')"
            style="width:52px;height:52px">
         <lucide-icon *ngIf="loading" [img]="Loader" [size]="20" class="text-indigo-400 animate-spin"></lucide-icon>
         <span *ngIf="!loading" class="text-xs sm:text-sm font-bold">{{ match.score | matchScore:'percent' }}</span>
       </div>
       <span *ngIf="!loading" class="text-xs font-medium mt-1 whitespace-nowrap hidden sm:block"
-            [class]="scoreTier()==='high' ? 'text-emerald-600' : scoreTier()==='mid' ? 'text-amber-600' : 'text-red-500'">
+            [class]="_scoreTier==='high' ? 'text-emerald-600' : _scoreTier==='mid' ? 'text-amber-600' : 'text-red-500'">
         {{ match.score | matchScore:'label' }}
       </span>
       <span *ngIf="loading" class="text-xs text-slate-400 mt-1 hidden sm:block">Loading...</span>
@@ -41,7 +41,7 @@
       {{ match.location || 'TBD' }}
     </span>
     <span class="flex items-center gap-1 bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
-      <lucide-icon [img]="workModeIcon()" [size]="10"></lucide-icon>
+      <lucide-icon [img]="_workModeIcon" [size]="10"></lucide-icon>
       {{ match.workMode }}
     </span>
     <span [class]="match.roleType==='INTERNSHIP'
@@ -70,10 +70,10 @@
     </span>
   </div>
 
-  <div class="border-t border-slate-100 my-3"></div>
+  <div *ngIf="!loading" class="border-t border-slate-100 my-3"></div>
 
   <!-- Actions -->
-  <div class="flex items-center justify-between">
+  <div *ngIf="!loading" class="flex items-center justify-between">
     <button type="button" (click)="toggleBreakdown()"
             class="flex items-center gap-1.5 text-indigo-600 text-xs font-semibold hover:text-indigo-800 transition">
       <lucide-icon [img]="showBreakdown ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>

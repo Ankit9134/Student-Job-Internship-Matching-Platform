@@ -5,6 +5,7 @@ import com.example.jobmatch.dto.MatchDtos.PagedResponse;
 import com.example.jobmatch.dto.StudentDtos.StudentProfileRequest;
 import com.example.jobmatch.dto.StudentDtos.StudentProfileResponse;
 import com.example.jobmatch.entity.Enums.WorkMode;
+import com.example.jobmatch.repository.UserRepository;
 import com.example.jobmatch.service.FileStorageService;
 import com.example.jobmatch.service.MatchQueryService;
 import com.example.jobmatch.service.MatchingService;
@@ -16,6 +17,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,11 +33,18 @@ public class StudentController {
     private final MatchingService matchingService;
     private final MatchQueryService matchQueryService;
     private final FileStorageService fileStorageService;
+    private final UserRepository userRepo;
 
     @PostMapping
     public StudentProfileResponse create(@Valid @RequestBody StudentProfileRequest req) {
         StudentProfileResponse created = studentService.createOrUpdate(null, req);
         matchingService.recomputeForStudent(created.getId());
+        // Link studentId to the logged-in user so login always returns correct studentId
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        userRepo.findByEmail(email).ifPresent(user -> {
+            user.setStudentId(created.getId());
+            userRepo.save(user);
+        });
         return created;
     }
 

@@ -72,7 +72,12 @@ export class ProfileComponent implements OnInit {
           this.setSkillIds(profile.skills.map(s => s.id));
           this.existingResumeUrl = profile.resumeUrl ? this.studentService.getResumeViewUrl(this.studentId!) : null;
         },
-        error: () => { this.studentExists = false; this.loadingProfile.set(false); }
+        error: () => {
+          this.studentExists = false;
+          this.studentId = null;
+          localStorage.removeItem('studentId');
+          this.loadingProfile.set(false);
+        }
       });
     }
   }
