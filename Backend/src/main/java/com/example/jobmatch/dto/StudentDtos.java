@@ -19,7 +19,7 @@ public class StudentDtos {
         @NotBlank
         private String fullName;
 
-        @DecimalMin("0.0") @DecimalMax("4.0")
+        @DecimalMin("0.0") @DecimalMax("10.0")
         private BigDecimal gpa;
 
         private Integer gradYear;

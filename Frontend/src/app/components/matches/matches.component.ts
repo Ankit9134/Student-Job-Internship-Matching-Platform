@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatchService } from '../../services/match.service';
 import { ApplicationService } from '../../services/application.service';
+import { StudentService } from '../../services/student.service';
 import { MatchCardComponent } from '../match-card/match-card.component';
 import { MatchCard } from '../../models/match.model';
 
@@ -12,14 +13,14 @@ import { MatchCard } from '../../models/match.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatchCardComponent],
   templateUrl: './matches.component.html',
-  styleUrls: ['./matches.component.scss']
 })
 export class MatchesComponent implements OnInit {
   private fb = inject(FormBuilder);
   private matchService = inject(MatchService);
   private applicationService = inject(ApplicationService);
+  private studentService = inject(StudentService);
 
-  studentId = 1; // demo student - swap for the authenticated user's id
+  studentId = this.studentService.getSavedStudentId() ?? 1;
 
   matches: MatchCard[] = [];
   appliedListingIds = new Set<number>();

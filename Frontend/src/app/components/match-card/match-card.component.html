@@ -1,54 +1,121 @@
-<div [class]="'bg-white rounded-xl border border-l-4 p-4 shadow-sm ' +
-  (scoreTier() === 'high' ? 'border-l-emerald-500' : scoreTier() === 'mid' ? 'border-l-amber-500' : 'border-l-red-500')">
+<div [class]="'bg-white rounded-2xl border-l-4 border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ' +
+  (scoreTier() === 'high' ? 'border-l-emerald-500' : scoreTier() === 'mid' ? 'border-l-amber-400' : 'border-l-red-400')">
 
-  <div class="flex justify-between items-start gap-3 mb-2">
-    <div>
-      <h3 class="text-base font-semibold text-gray-900 mb-0.5">{{ match.title }}</h3>
-      <p class="text-sm text-gray-500">{{ match.company }}</p>
+  <!-- Top Row: Title + Score Badge -->
+  <div class="flex justify-between items-start gap-3 mb-3">
+    <div class="flex-1 min-w-0">
+      <h3 class="text-base font-bold text-slate-900 truncate">{{ match.title }}</h3>
+      <p class="text-sm text-slate-500 mt-0.5">🏢 {{ match.company }}</p>
     </div>
-    <span class="bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap">
-      {{ match.score | matchScore:'percent' }}
-    </span>
+
+    <!-- Score Badge -->
+    <div class="flex flex-col items-center shrink-0">
+      <div [class]="'w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold border-4 ' +
+        (scoreTier() === 'high' ? 'border-emerald-500 text-emerald-700 bg-emerald-50' :
+         scoreTier() === 'mid'  ? 'border-amber-400 text-amber-700 bg-amber-50' :
+                                  'border-red-400 text-red-700 bg-red-50')">
+        {{ match.score | matchScore:'percent' }}
+      </div>
+      <span class="text-xs text-slate-400 mt-1 whitespace-nowrap">{{ match.score | matchScore:'label' }}</span>
+    </div>
   </div>
 
-  <div class="flex flex-wrap gap-1.5 my-2">
-    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">{{ match.location || 'Location TBD' }}</span>
-    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">{{ match.workMode }}</span>
-    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">{{ match.roleType }}</span>
-    <span [class]="match.sponsorshipOffered
-      ? 'bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded'
-      : 'bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded'">
-      {{ match.sponsorshipOffered ? 'Sponsorship offered' : 'No sponsorship' }}
-    </span>
-  </div>
-
-  <div class="text-sm text-amber-500 mb-2">
+  <!-- Stars -->
+  <div class="text-base text-amber-400 mb-3 tracking-wide">
     {{ match.score | matchScore:'stars' }}
-    <span class="text-gray-400 text-xs ml-1">{{ match.score | matchScore:'label' }}</span>
   </div>
 
-  <button type="button" (click)="toggleBreakdown()"
-          class="text-blue-600 text-xs hover:underline mb-2 bg-transparent border-none cursor-pointer p-0">
-    {{ showBreakdown ? 'Hide match details' : 'Why did this match?' }}
-  </button>
-
-  <div *ngIf="showBreakdown" class="bg-gray-50 rounded-lg px-3 py-2.5 text-xs text-gray-700 mb-3 space-y-1">
-    <div *ngIf="match.breakdown.matchedSkills.length">
-      <strong>Matched on:</strong> {{ match.breakdown.matchedSkills.join(', ') }}
-    </div>
-    <div *ngIf="match.breakdown.missingSkills.length">
-      <strong>Missing:</strong> {{ match.breakdown.missingSkills.join(', ') }}
-    </div>
-    <div>
-      <strong>GPA fit:</strong> {{ match.breakdown.gpaScore }}%
-      <strong class="ml-3">Sponsorship fit:</strong> {{ match.breakdown.authScore }}%
-    </div>
+  <!-- Tags Row -->
+  <div class="flex flex-wrap gap-1.5 mb-3">
+    <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
+      📍 {{ match.location || 'Location TBD' }}
+    </span>
+    <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
+      {{ match.workMode === 'REMOTE' ? '🏠' : match.workMode === 'HYBRID' ? '🔀' : '🏢' }} {{ match.workMode }}
+    </span>
+    <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
+      {{ match.roleType === 'INTERNSHIP' ? '🎓 Internship' : '💼 Full-time' }}
+    </span>
+    <span [class]="match.sponsorshipOffered
+      ? 'bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium border border-emerald-200'
+      : 'bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full font-medium'">
+      {{ match.sponsorshipOffered ? '✅ Sponsorship offered' : '❌ No sponsorship' }}
+    </span>
   </div>
 
-  <div class="flex justify-end">
+  <!-- Matched Skills Preview -->
+  <div *ngIf="match.breakdown.matchedSkills.length" class="flex flex-wrap gap-1.5 mb-3">
+    <span *ngFor="let skill of match.breakdown.matchedSkills.slice(0, 5)"
+          class="bg-indigo-50 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium border border-indigo-100">
+      ✓ {{ skill }}
+    </span>
+    <span *ngIf="match.breakdown.matchedSkills.length > 5"
+          class="bg-indigo-50 text-indigo-500 text-xs px-2.5 py-1 rounded-full font-medium">
+      +{{ match.breakdown.matchedSkills.length - 5 }} more
+    </span>
+  </div>
+
+  <!-- Divider -->
+  <div class="border-t border-slate-100 my-3"></div>
+
+  <!-- Bottom Row: Explain + Apply -->
+  <div class="flex items-center justify-between">
+    <button type="button" (click)="toggleBreakdown()"
+            class="text-indigo-600 text-xs font-semibold hover:text-indigo-800 transition flex items-center gap-1">
+      {{ showBreakdown ? '▲ Hide details' : '▼ Why this match?' }}
+    </button>
+
     <button type="button" [disabled]="alreadyApplied" (click)="onApply()"
-            class="px-4 py-1.5 text-xs font-semibold rounded-lg border border-gray-900 bg-white text-gray-900 hover:bg-gray-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-      {{ alreadyApplied ? 'Applied ✓' : 'Mark as Applied' }}
+            [class]="alreadyApplied
+              ? 'px-4 py-1.5 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default'
+              : 'px-4 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm'">
+      {{ alreadyApplied ? '✅ Applied' : 'Mark as Applied' }}
     </button>
   </div>
+
+  <!-- Breakdown Panel -->
+  <div *ngIf="showBreakdown" class="mt-3 bg-slate-50 rounded-xl p-4 text-xs text-slate-700 space-y-2 border border-slate-100">
+    <p class="font-semibold text-slate-600 mb-2">📊 Match Breakdown</p>
+
+    <!-- Score Bars -->
+    <div class="space-y-2">
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="font-medium">🧠 Skill Match</span>
+          <span class="font-bold text-indigo-600">{{ match.breakdown.skillScore }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div class="bg-indigo-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.skillScore"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="font-medium">📈 GPA Fit</span>
+          <span class="font-bold text-indigo-600">{{ match.breakdown.gpaScore }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div class="bg-indigo-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.gpaScore"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="font-medium">🛂 Auth Fit</span>
+          <span class="font-bold text-indigo-600">{{ match.breakdown.authScore }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div class="bg-indigo-500 h-1.5 rounded-full transition-all" [style.width.%]="match.breakdown.authScore"></div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="match.breakdown.matchedSkills.length" class="pt-1">
+      <span class="font-semibold text-emerald-700">✓ Matched:</span>
+      {{ match.breakdown.matchedSkills.join(', ') }}
+    </div>
+    <div *ngIf="match.breakdown.missingSkills.length" class="pt-1">
+      <span class="font-semibold text-red-500">✗ Missing:</span>
+      {{ match.breakdown.missingSkills.join(', ') }}
+    </div>
+  </div>
+
 </div>

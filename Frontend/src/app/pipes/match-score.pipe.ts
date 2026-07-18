@@ -23,7 +23,7 @@ export class MatchScorePipe implements PipeTransform {
         return this.label(clamped);
       case 'percent':
       default:
-        return `${Math.round(clamped)}% match`;
+        return `${Math.round(clamped)}%`;
     }
   }
 

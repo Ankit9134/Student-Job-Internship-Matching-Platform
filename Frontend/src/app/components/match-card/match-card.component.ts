@@ -8,7 +8,6 @@ import { MatchCard } from '../../models/match.model';
   standalone: true,
   imports: [CommonModule, MatchScorePipe],
   templateUrl: './match-card.component.html',
-  styleUrls: ['./match-card.component.scss']
 })
 export class MatchCardComponent {
   @Input({ required: true }) match!: MatchCard;

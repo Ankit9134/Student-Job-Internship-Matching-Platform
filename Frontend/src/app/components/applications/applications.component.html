@@ -1,36 +1,56 @@
-<h2 class="text-2xl font-bold text-gray-900 mb-5">My Applications</h2>
+<div>
+  <!-- Page Header -->
+  <div class="mb-8">
+    <h2 class="text-2xl font-bold text-slate-900">My Applications</h2>
+    <p class="text-sm text-slate-500 mt-1">Track the status of roles you've marked as applied.</p>
+  </div>
 
-<p *ngIf="loading" class="text-sm text-gray-500">Loading...</p>
-<p *ngIf="!loading && applications.length === 0" class="text-sm text-gray-500">
-  You haven't marked any listings as applied yet — do that from the Matches tab.
-</p>
+  <!-- Loading -->
+  <div *ngIf="loading" class="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+    <p class="text-sm text-slate-400 animate-pulse">Loading applications...</p>
+  </div>
 
-<div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm" *ngIf="!loading && applications.length > 0">
-  <table class="w-full text-sm border-collapse">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Company</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Applied</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100 bg-white">
-      <tr *ngFor="let app of applications" class="hover:bg-gray-50 transition-colors">
-        <td class="px-4 py-3 font-medium text-gray-900">{{ app.listingTitle }}</td>
-        <td class="px-4 py-3 text-gray-600">{{ app.companyName }}</td>
-        <td class="px-4 py-3 text-gray-500">{{ app.appliedAt | date:'mediumDate' }}</td>
-        <td class="px-4 py-3">
-          <select [value]="app.status" (change)="updateStatus(app, $any($event.target).value)"
-                  [class]="'px-2 py-1 rounded-lg border text-xs font-semibold focus:outline-none ' +
-                    (app.status === 'APPLIED' ? 'border-blue-200 text-blue-600 bg-blue-50' :
-                     app.status === 'INTERVIEWING' ? 'border-amber-200 text-amber-600 bg-amber-50' :
-                     app.status === 'OFFER' ? 'border-emerald-200 text-emerald-600 bg-emerald-50' :
-                     'border-red-200 text-red-600 bg-red-50')">
-            <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
-          </select>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Empty State -->
+  <div *ngIf="!loading && applications.length === 0"
+       class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+    <div class="text-4xl mb-3">📭</div>
+    <p class="text-slate-700 font-semibold mb-1">No applications yet</p>
+    <p class="text-sm text-slate-400">Head to the <strong>Matches</strong> tab and mark roles as applied.</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div *ngIf="!loading && applications.length > 0" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div *ngFor="let s of statuses" class="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+      <p class="text-2xl font-bold" [class]="statusColor(s)">{{ countByStatus(s) }}</p>
+      <p class="text-xs text-slate-500 mt-1 font-medium">{{ s }}</p>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm" *ngIf="!loading && applications.length > 0">
+    <table class="w-full text-sm border-collapse">
+      <thead class="bg-slate-50 border-b border-slate-200">
+        <tr>
+          <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
+          <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Company</th>
+          <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Applied</th>
+          <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        <tr *ngFor="let app of applications" class="hover:bg-slate-50 transition-colors">
+          <td class="px-5 py-3.5 font-semibold text-slate-900">{{ app.listingTitle }}</td>
+          <td class="px-5 py-3.5 text-slate-500">{{ app.companyName }}</td>
+          <td class="px-5 py-3.5 text-slate-400 text-xs">{{ app.appliedAt | date:'mediumDate' }}</td>
+          <td class="px-5 py-3.5">
+            <select [value]="app.status" (change)="updateStatus(app, $any($event.target).value)"
+                    [class]="'px-3 py-1.5 rounded-xl border text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer ' + statusBadgeClass(app.status)">
+              <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
 </div>

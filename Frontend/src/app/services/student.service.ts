@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { StudentProfileRequest, StudentProfileResponse } from '../models/student.model';
 
@@ -11,7 +12,14 @@ export class StudentService {
   constructor(private http: HttpClient) {}
 
   createProfile(req: StudentProfileRequest): Observable<StudentProfileResponse> {
-    return this.http.post<StudentProfileResponse>(this.base, req);
+    return this.http.post<StudentProfileResponse>(this.base, req).pipe(
+      tap(res => localStorage.setItem('studentId', String(res.id)))
+    );
+  }
+
+  getSavedStudentId(): number | null {
+    const id = localStorage.getItem('studentId');
+    return id ? Number(id) : null;
   }
 
   updateProfile(studentId: number, req: StudentProfileRequest): Observable<StudentProfileResponse> {

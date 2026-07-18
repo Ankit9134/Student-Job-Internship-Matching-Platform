@@ -10,15 +10,11 @@ import { Skill, StudentProfileRequest } from '../../models/student.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private studentService = inject(StudentService);
   private skillService = inject(SkillService);
-
-  /** Demo student id - in a real app this comes from the authenticated session. */
-  studentId = 1;
 
   allSkills: Skill[] = [];
   saving = false;
@@ -28,7 +24,7 @@ export class ProfileComponent implements OnInit {
   profileForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     fullName: ['', Validators.required],
-    gpa: [null as number | null, [Validators.min(0), Validators.max(4)]],
+    gpa: [null as number | null, [Validators.min(0), Validators.max(10)]],
     gradYear: [null as number | null],
     workAuthStatus: ['CITIZEN', Validators.required],
     needsSponsorship: [false],
@@ -37,29 +33,33 @@ export class ProfileComponent implements OnInit {
     skillIds: this.fb.array<FormControl<number>>([])
   });
 
-  constructor() {}
+  /** Loaded from localStorage after first save; null means student not yet created. */
+  studentId: number | null = null;
+  studentExists = false;
 
   ngOnInit(): void {
     this.skillService.list().subscribe(skills => (this.allSkills = skills));
 
-    this.studentService.getProfile(this.studentId).subscribe({
-      next: profile => {
-        this.profileForm.patchValue({
-          email: profile.email,
-          fullName: profile.fullName,
-          gpa: profile.gpa,
-          gradYear: profile.gradYear,
-          workAuthStatus: profile.workAuthStatus,
-          needsSponsorship: profile.needsSponsorship,
-          preferredWorkMode: profile.preferredWorkMode,
-          preferredLocations: profile.preferredLocations
-        });
-        this.setSkillIds(profile.skills.map(s => s.id));
-      },
-      error: () => {
-        // No existing profile yet - that's fine, the form starts empty for a new student.
-      }
-    });
+    this.studentId = this.studentService.getSavedStudentId();
+    if (this.studentId) {
+      this.studentService.getProfile(this.studentId).subscribe({
+        next: profile => {
+          this.studentExists = true;
+          this.profileForm.patchValue({
+            email: profile.email,
+            fullName: profile.fullName,
+            gpa: profile.gpa,
+            gradYear: profile.gradYear,
+            workAuthStatus: profile.workAuthStatus,
+            needsSponsorship: profile.needsSponsorship,
+            preferredWorkMode: profile.preferredWorkMode,
+            preferredLocations: profile.preferredLocations
+          });
+          this.setSkillIds(profile.skills.map(s => s.id));
+        },
+        error: () => { this.studentExists = false; }
+      });
+    }
   }
 
   get skillIdsArray(): FormArray<FormControl<number>> {
@@ -110,17 +110,24 @@ export class ProfileComponent implements OnInit {
       skillIds: raw.skillIds as number[]
     };
 
-    this.studentService.updateProfile(this.studentId, payload).subscribe({
-      next: () => {
+    const request$ = this.studentExists && this.studentId
+      ? this.studentService.updateProfile(this.studentId, payload)
+      : this.studentService.createProfile(payload);
+
+    request$.subscribe({
+      next: res => {
+        this.studentExists = true;
+        this.studentId = res.id;
         this.saving = false;
         this.saveMessage = 'Profile saved — your matches have been recalculated.';
-        if (this.selectedResume) {
+        if (this.selectedResume && this.studentId) {
           this.studentService.uploadResume(this.studentId, this.selectedResume).subscribe();
         }
       },
       error: err => {
         this.saving = false;
-        this.saveMessage = 'Could not save profile: ' + (err?.error?.message || 'unknown error');
+        this.saveMessage = 'Could not save profile: ' + (err?.error?.message || JSON.stringify(err?.error) || 'unknown error');
+        console.error('Save error:', err?.error);
       }
     });
   }
