@@ -30,7 +30,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
         "https://student-job-internship-matching-platform-eav7imjrl.vercel.app/",
-        "https://student-job-internship-matching-pla.vercel.app/login"
+        "https://student-job-internship-matching-pla.vercel.app/"
         ));
         
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
