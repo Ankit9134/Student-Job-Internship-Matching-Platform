@@ -68,10 +68,10 @@ public class MatchQueryService {
     @Transactional(readOnly = true)
     public MatchCardResponse getExplain(Long studentId, Long listingId) {
         MatchResult mr = matchRepo.findById(new MatchResult.MatchResultId(studentId, listingId))
-            .orElseThrow(() -> new com.jobmatch.exception.ResourceNotFoundException(
+            .orElseThrow(() -> new com.example.jobmatch.exception.ResourceNotFoundException(
                 "No computed match for student " + studentId + " / listing " + listingId));
         Listing listing = listingRepo.findById(listingId)
-            .orElseThrow(() -> new com.jobmatch.exception.ResourceNotFoundException("Listing not found: " + listingId));
+            .orElseThrow(() -> new com.example.jobmatch.exception.ResourceNotFoundException("Listing not found: " + listingId));
         return toCard(mr, listing);
     }
 

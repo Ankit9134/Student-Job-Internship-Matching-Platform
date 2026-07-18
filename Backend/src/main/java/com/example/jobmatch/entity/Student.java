@@ -1,7 +1,7 @@
 package com.example.jobmatch.entity;
 
-import com.jobmatch.entity.Enums.WorkAuthStatus;
-import com.jobmatch.entity.Enums.WorkMode;
+import com.example.jobmatch.entity.Enums.WorkAuthStatus;
+import com.example.jobmatch.entity.Enums.WorkMode;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,6 +1,6 @@
 package com.example.jobmatch.entity;
 
-import com.jobmatch.entity.Enums.ApplicationStatus;
+import com.example.jobmatch.entity.Enums.ApplicationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

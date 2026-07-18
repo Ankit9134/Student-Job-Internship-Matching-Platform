@@ -28,7 +28,7 @@ public interface MatchResultRepository extends JpaRepository<MatchResult, MatchR
         @Param("studentId") Long studentId,
         @Param("role") String role,
         @Param("location") String location,
-        @Param("workMode") com.jobmatch.entity.Enums.WorkMode workMode,
+        @Param("workMode") com.example.jobmatch.entity.Enums.WorkMode workMode,
         @Param("sponsorshipNeeded") Boolean sponsorshipNeeded,
         Pageable pageable
     );

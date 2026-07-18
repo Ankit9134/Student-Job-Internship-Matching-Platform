@@ -1,7 +1,7 @@
 package com.example.jobmatch.dto;
 
-import com.jobmatch.entity.Enums.WorkAuthStatus;
-import com.jobmatch.entity.Enums.WorkMode;
+import com.example.jobmatch.entity.Enums.WorkAuthStatus;
+import com.example.jobmatch.entity.Enums.WorkMode;
 import jakarta.validation.constraints.*;
 import lombok.*;
 

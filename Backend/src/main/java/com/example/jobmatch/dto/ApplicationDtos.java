@@ -1,6 +1,6 @@
 package com.example.jobmatch.dto;
 
-import com.jobmatch.entity.Enums.ApplicationStatus;
+import com.example.jobmatch.entity.Enums.ApplicationStatus;
 import lombok.*;
 
 import java.time.Instant;

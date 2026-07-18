@@ -1,9 +1,9 @@
 package com.example.jobmatch.controller;
 
-import com.jobmatch.dto.ApplicationDtos.ApplicationResponse;
-import com.jobmatch.dto.ApplicationDtos.CreateApplicationRequest;
-import com.jobmatch.dto.ApplicationDtos.UpdateStatusRequest;
-import com.jobmatch.service.ApplicationService;
+import com.example.jobmatch.dto.ApplicationDtos.ApplicationResponse;
+import com.example.jobmatch.dto.ApplicationDtos.CreateApplicationRequest;
+import com.example.jobmatch.dto.ApplicationDtos.UpdateStatusRequest;
+import com.example.jobmatch.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

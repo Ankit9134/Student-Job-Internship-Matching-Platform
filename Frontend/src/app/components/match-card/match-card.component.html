@@ -1,46 +1,54 @@
-<div class="card" [class.high]="scoreTier() === 'high'" [class.mid]="scoreTier() === 'mid'" [class.low]="scoreTier() === 'low'">
+<div [class]="'bg-white rounded-xl border border-l-4 p-4 shadow-sm ' +
+  (scoreTier() === 'high' ? 'border-l-emerald-500' : scoreTier() === 'mid' ? 'border-l-amber-500' : 'border-l-red-500')">
 
-  <div class="card-header">
+  <div class="flex justify-between items-start gap-3 mb-2">
     <div>
-      <h3>{{ match.title }}</h3>
-      <p class="company">{{ match.company }}</p>
+      <h3 class="text-base font-semibold text-gray-900 mb-0.5">{{ match.title }}</h3>
+      <p class="text-sm text-gray-500">{{ match.company }}</p>
     </div>
-    <div class="score-badge" [title]="match.score + '% match'">
+    <span class="bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap">
       {{ match.score | matchScore:'percent' }}
-    </div>
+    </span>
   </div>
 
-  <div class="meta-row">
-    <span class="tag">{{ match.location || 'Location TBD' }}</span>
-    <span class="tag">{{ match.workMode }}</span>
-    <span class="tag">{{ match.roleType }}</span>
-    <span class="tag" [class.sponsor-yes]="match.sponsorshipOffered">
+  <div class="flex flex-wrap gap-1.5 my-2">
+    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">{{ match.location || 'Location TBD' }}</span>
+    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">{{ match.workMode }}</span>
+    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">{{ match.roleType }}</span>
+    <span [class]="match.sponsorshipOffered
+      ? 'bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded'
+      : 'bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded'">
       {{ match.sponsorshipOffered ? 'Sponsorship offered' : 'No sponsorship' }}
     </span>
   </div>
 
-  <div class="stars">{{ match.score | matchScore:'stars' }} <span class="score-label">{{ match.score | matchScore:'label' }}</span></div>
+  <div class="text-sm text-amber-500 mb-2">
+    {{ match.score | matchScore:'stars' }}
+    <span class="text-gray-400 text-xs ml-1">{{ match.score | matchScore:'label' }}</span>
+  </div>
 
-  <button class="explain-toggle" type="button" (click)="toggleBreakdown()">
+  <button type="button" (click)="toggleBreakdown()"
+          class="text-blue-600 text-xs hover:underline mb-2 bg-transparent border-none cursor-pointer p-0">
     {{ showBreakdown ? 'Hide match details' : 'Why did this match?' }}
   </button>
 
-  <div class="breakdown" *ngIf="showBreakdown">
-    <div class="breakdown-row" *ngIf="match.breakdown.matchedSkills.length">
+  <div *ngIf="showBreakdown" class="bg-gray-50 rounded-lg px-3 py-2.5 text-xs text-gray-700 mb-3 space-y-1">
+    <div *ngIf="match.breakdown.matchedSkills.length">
       <strong>Matched on:</strong> {{ match.breakdown.matchedSkills.join(', ') }}
     </div>
-    <div class="breakdown-row" *ngIf="match.breakdown.missingSkills.length">
+    <div *ngIf="match.breakdown.missingSkills.length">
       <strong>Missing:</strong> {{ match.breakdown.missingSkills.join(', ') }}
     </div>
-    <div class="breakdown-row">
+    <div>
       <strong>GPA fit:</strong> {{ match.breakdown.gpaScore }}%
-      <strong class="ml">Sponsorship fit:</strong> {{ match.breakdown.authScore }}%
+      <strong class="ml-3">Sponsorship fit:</strong> {{ match.breakdown.authScore }}%
     </div>
   </div>
 
-  <div class="actions">
-    <button class="apply-btn" type="button" [disabled]="alreadyApplied" (click)="onApply()">
-      {{ alreadyApplied ? 'Applied' : 'Mark as Applied' }}
+  <div class="flex justify-end">
+    <button type="button" [disabled]="alreadyApplied" (click)="onApply()"
+            class="px-4 py-1.5 text-xs font-semibold rounded-lg border border-gray-900 bg-white text-gray-900 hover:bg-gray-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      {{ alreadyApplied ? 'Applied ✓' : 'Mark as Applied' }}
     </button>
   </div>
 </div>
