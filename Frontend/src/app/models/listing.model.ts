@@ -12,6 +12,7 @@ export interface Listing {
   roleType: RoleType;
   requiredSkills: Skill[];
   niceToHaveSkills: Skill[];
+  createdAt: string | null;
 }
 
 export interface ListingFilters {

@@ -36,5 +36,6 @@ export interface ApplicationRecord {
   companyName: string;
   status: ApplicationStatus;
   appliedAt: string;
+  postedAt: string | null;
   notes: string | null;
 }

@@ -1,6 +1,7 @@
 package com.example.jobmatch.controller;
 
 import com.example.jobmatch.dto.ApplicationDtos.ApplicationResponse;
+import com.example.jobmatch.dto.ApplicationDtos.ApplicantSummary;
 import com.example.jobmatch.dto.ApplicationDtos.CreateApplicationRequest;
 import com.example.jobmatch.dto.ApplicationDtos.UpdateStatusRequest;
 import com.example.jobmatch.service.ApplicationService;
@@ -23,6 +24,11 @@ public class ApplicationController {
     @GetMapping("/api/students/{studentId}/applications")
     public List<ApplicationResponse> listForStudent(@PathVariable Long studentId) {
         return applicationService.getForStudent(studentId);
+    }
+
+    @GetMapping("/api/listings/{listingId}/applicants")
+    public List<ApplicantSummary> listForListing(@PathVariable Long listingId) {
+        return applicationService.getForListing(listingId);
     }
 
     @PatchMapping("/api/applications/{applicationId}")

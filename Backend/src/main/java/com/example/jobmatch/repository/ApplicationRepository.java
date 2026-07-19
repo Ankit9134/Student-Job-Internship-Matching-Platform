@@ -17,4 +17,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     @Query("SELECT a.listingId, COUNT(a) FROM Application a GROUP BY a.listingId")
     List<Object[]> countGroupedByListing();
+
+    @Query("SELECT a FROM Application a WHERE a.listingId = :listingId ORDER BY a.appliedAt DESC")
+    List<Application> findByListingId(@Param("listingId") Long listingId);
 }

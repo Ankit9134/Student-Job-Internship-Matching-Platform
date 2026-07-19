@@ -47,5 +47,6 @@ public class ListingDtos {
         private RoleType roleType;
         private List<SkillDto> requiredSkills;
         private List<SkillDto> niceToHaveSkills;
+        private java.time.Instant createdAt;
     }
 }

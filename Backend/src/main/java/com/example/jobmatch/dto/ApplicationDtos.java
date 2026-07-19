@@ -26,6 +26,26 @@ public class ApplicationDtos {
         private String companyName;
         private ApplicationStatus status;
         private Instant appliedAt;
+        private Instant postedAt;
+        private String notes;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class ApplicantSummary {
+        private Long applicationId;
+        private Long studentId;
+        private String studentName;
+        private String email;
+        private java.math.BigDecimal gpa;
+        private Integer gradYear;
+        private String workAuthStatus;
+        private boolean needsSponsorship;
+        private String preferredWorkMode;
+        private String preferredLocations;
+        private boolean hasResume;
+        private java.util.List<String> skills;
+        private ApplicationStatus status;
+        private Instant appliedAt;
         private String notes;
     }
 }

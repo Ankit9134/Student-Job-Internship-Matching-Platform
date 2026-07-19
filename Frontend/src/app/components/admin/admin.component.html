@@ -185,6 +185,73 @@
     </div>
   </div>
 
+  <!-- Applicants Panel -->
+  <div *ngIf="applicantsListing" class="bg-white rounded-2xl border border-emerald-200 shadow-sm overflow-hidden mb-6">
+    <div class="px-5 sm:px-6 py-4 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white flex items-start justify-between">
+      <div>
+        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <lucide-icon [img]="UserCheckIcon" [size]="15" class="text-emerald-600"></lucide-icon>
+          Applicants
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5">for <strong class="text-slate-700">{{ applicantsListing.title }}</strong> at {{ applicantsListing.companyName }}
+          <span class="ml-2 inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-100">
+            {{ applicants.length }} total
+          </span>
+        </p>
+      </div>
+      <button (click)="closeApplicants()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition">
+        <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+      </button>
+    </div>
+
+    <div *ngIf="loadingApplicants" class="p-4 space-y-2">
+      <div *ngFor="let i of [1,2,3]" class="h-11 bg-slate-100 rounded-xl animate-pulse"></div>
+    </div>
+
+    <div *ngIf="!loadingApplicants && applicants.length === 0" class="p-10 text-center">
+      <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <lucide-icon [img]="UserCheckIcon" [size]="20" class="text-slate-400"></lucide-icon>
+      </div>
+      <p class="text-sm text-slate-500">No one has applied yet.</p>
+    </div>
+
+    <div *ngIf="!loadingApplicants && applicants.length > 0" class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50/80 border-b border-slate-100">
+          <tr>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">#</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Name</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden sm:table-cell">Email</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden sm:table-cell">GPA</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Applied</th>
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Notes</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let a of applicants; let i = index"
+              class="hover:bg-emerald-50/40 transition cursor-pointer"
+              (click)="selectedApplicant = a">
+            <td class="px-5 py-3.5 text-slate-400 font-semibold text-xs">{{ i + 1 }}</td>
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0">{{ a.studentName?.charAt(0) }}</div>
+                <span class="font-semibold text-slate-800">{{ a.studentName }}</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs hidden sm:table-cell">{{ a.email }}</td>
+            <td class="px-5 py-3.5 text-slate-600 text-xs hidden sm:table-cell">{{ a.gpa ?? '—' }}</td>
+            <td class="px-5 py-3.5">
+              <span [class]="'text-xs font-semibold px-2.5 py-1 rounded-full border ' + statusClass(a.status)">{{ a.status }}</span>
+            </td>
+            <td class="px-5 py-3.5 text-slate-400 text-xs hidden md:table-cell">{{ a.appliedAt | date:'mediumDate' }}</td>
+            <td class="px-5 py-3.5 text-slate-500 text-xs hidden md:table-cell">{{ a.notes || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Listings Table -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <div class="px-5 sm:px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
@@ -217,7 +284,8 @@
             <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden sm:table-cell">Company</th>
             <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden md:table-cell">Mode</th>
             <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden md:table-cell">Type</th>
-            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden sm:table-cell">Applicants</th>
+            <!-- <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden sm:table-cell">Applicants</th> -->
+            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden lg:table-cell">Posted</th>
             <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
           </tr>
         </thead>
@@ -239,12 +307,13 @@
                 {{ listing.roleType==='INTERNSHIP' ? 'Internship' : 'Full-time' }}
               </span>
             </td>
-            <td class="px-5 py-4 hidden sm:table-cell">
+            <!-- <td class="px-5 py-4 hidden sm:table-cell">
               <span class="inline-flex items-center gap-1 text-sm font-bold text-slate-700">
                 <lucide-icon [img]="UsersIcon" [size]="13" class="text-indigo-400"></lucide-icon>
                 {{ applicantCounts[listing.id] || '—' }}
               </span>
-            </td>
+            </td> -->
+            <td class="px-5 py-4 text-slate-400 text-xs hidden lg:table-cell">{{ listing.createdAt | date:'mediumDate' }}</td>
             <td class="px-5 py-4">
               <!-- Inline Delete Confirm -->
               <div *ngIf="confirmDeleteId === listing.id" class="flex items-center gap-2">
@@ -256,6 +325,11 @@
               </div>
               <!-- Normal Actions -->
               <div *ngIf="confirmDeleteId !== listing.id" class="flex gap-1.5">
+                <button (click)="viewApplicants(listing)"
+                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition border border-emerald-100">
+                  <lucide-icon [img]="UserCheckIcon" [size]="11"></lucide-icon>
+                  <span class="hidden sm:inline">{{ applicantCounts[listing.id] || 0 }} Applied</span>
+                </button>
                 <button (click)="viewTopStudents(listing)"
                         class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-100">
                   <lucide-icon [img]="UsersIcon" [size]="11"></lucide-icon>
@@ -280,7 +354,89 @@
     </div>
   </div>
 
-  <!-- Student Profile Modal -->
+  <!-- Applicant Detail Modal -->
+  <div *ngIf="selectedApplicant" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" (click)="selectedApplicant = null">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">{{ selectedApplicant.studentName?.charAt(0) }}</div>
+          <div>
+            <p class="font-bold text-slate-900 text-sm">{{ selectedApplicant.studentName }}</p>
+            <p class="text-xs text-slate-400">{{ selectedApplicant.email }}</p>
+          </div>
+        </div>
+        <button (click)="selectedApplicant = null" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition">
+          <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+        </button>
+      </div>
+      <!-- Status Bar -->
+      <div [class]="'px-6 py-3 flex items-center justify-between ' + statusClass(selectedApplicant.status)">
+        <span class="text-xs font-semibold uppercase tracking-wide opacity-70">Application Status</span>
+        <span class="text-sm font-bold">{{ selectedApplicant.status }}</span>
+      </div>
+      <!-- Details -->
+      <div class="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">GPA</p>
+            <p class="font-bold text-slate-800 text-sm">{{ selectedApplicant.gpa ?? '—' }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">Grad Year</p>
+            <p class="font-bold text-slate-800 text-sm">{{ selectedApplicant.gradYear ?? '—' }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">Resume</p>
+            <p class="font-bold text-sm" [class]="selectedApplicant.hasResume ? 'text-emerald-600' : 'text-slate-400'">{{ selectedApplicant.hasResume ? 'Yes ✓' : 'No' }}</p>
+          </div>
+        </div>
+        <!-- Work Auth & Mode -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Work Auth</p>
+            <span class="inline-flex px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 w-fit">{{ selectedApplicant.workAuthStatus?.replace('_', ' ') ?? '—' }}</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Preferred Mode</p>
+            <span class="inline-flex px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold border border-violet-100 w-fit">{{ selectedApplicant.preferredWorkMode ?? '—' }}</span>
+          </div>
+        </div>
+        <!-- Locations -->
+        <div class="flex flex-col gap-1">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Preferred Locations</p>
+          <p class="text-sm text-slate-700">{{ selectedApplicant.preferredLocations || '—' }}</p>
+        </div>
+        <!-- Sponsorship -->
+        <div *ngIf="selectedApplicant.needsSponsorship" class="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <lucide-icon [img]="AlertTriangleIcon" [size]="13" class="text-amber-500"></lucide-icon>
+          <span class="text-xs font-semibold text-amber-700">Needs visa sponsorship</span>
+        </div>
+        <!-- Skills -->
+        <div class="flex flex-col gap-1.5">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Skills</p>
+          <div *ngIf="selectedApplicant.skills?.length; else noSkills" class="flex flex-wrap gap-1.5">
+            <span *ngFor="let sk of selectedApplicant.skills" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-full border border-indigo-100">{{ sk }}</span>
+          </div>
+          <ng-template #noSkills><p class="text-sm text-slate-400">—</p></ng-template>
+        </div>
+        <!-- Applied date & Notes -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Applied On</p>
+            <p class="text-sm font-semibold text-slate-700">{{ selectedApplicant.appliedAt | date:'mediumDate' }}</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3">
+            <p class="text-xs text-slate-400 mb-1">Notes</p>
+            <p class="text-sm text-slate-700">{{ selectedApplicant.notes || '—' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Detail Modal -->
   <div *ngIf="selectedStudent" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" (click)="selectedStudent = null">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
 

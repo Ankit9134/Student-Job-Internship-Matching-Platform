@@ -45,4 +45,8 @@ export class ListingService {
       params: { page, size } as any
     });
   }
+
+  getApplicants(listingId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/${listingId}/applicants`);
+  }
 }

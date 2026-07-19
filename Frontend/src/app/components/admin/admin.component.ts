@@ -7,7 +7,7 @@ import { SkillService } from '../../services/skill.service';
 import { Listing } from '../../models/listing.model';
 import { Skill } from '../../models/student.model';
 import { PagedResponse } from '../../models/match.model';
-import { LucideAngularModule, Plus, Pencil, Users, X, Briefcase, MapPin, Building2, GraduationCap, CheckCircle, XCircle, ClipboardList, Trash2, AlertTriangle, Loader } from 'lucide-angular';
+import { LucideAngularModule, Plus, Pencil, Users, X, Briefcase, MapPin, Building2, GraduationCap, CheckCircle, XCircle, ClipboardList, Trash2, AlertTriangle, Loader, UserCheck } from 'lucide-angular';
 
 @Component({
   selector: 'app-admin',
@@ -41,6 +41,12 @@ export class AdminComponent implements OnInit {
   selectedStudent: any = null;
   applicantCounts: Record<number, number> = {};
 
+  // Applicants panel
+  applicantsListing: Listing | null = null;
+  applicants: any[] = [];
+  loadingApplicants = false;
+  selectedApplicant: any = null;
+
   readonly PlusIcon = Plus;
   readonly PencilIcon = Pencil;
   readonly UsersIcon = Users;
@@ -55,6 +61,7 @@ export class AdminComponent implements OnInit {
   readonly Trash2Icon = Trash2;
   readonly AlertTriangleIcon = AlertTriangle;
   readonly LoaderIcon = Loader;
+  readonly UserCheckIcon = UserCheck;
 
   @ViewChild('formSection') formSection!: ElementRef;
 
@@ -227,6 +234,32 @@ export class AdminComponent implements OnInit {
   closeStudents(): void {
     this.selectedListing = null;
     this.topStudents = [];
+  }
+
+  viewApplicants(listing: Listing): void {
+    this.applicantsListing = listing;
+    this.loadingApplicants = true;
+    this.applicants = [];
+    this.listingService.getApplicants(listing.id).subscribe({
+      next: (data) => { this.applicants = data; this.loadingApplicants = false; },
+      error: () => { this.loadingApplicants = false; this.showToast('Failed to load applicants', 'error'); }
+    });
+  }
+
+  closeApplicants(): void {
+    this.applicantsListing = null;
+    this.applicants = [];
+    this.selectedApplicant = null;
+  }
+
+  statusClass(status: string): string {
+    const map: Record<string, string> = {
+      APPLIED: 'bg-blue-50 text-blue-700 border-blue-100',
+      INTERVIEWING: 'bg-amber-50 text-amber-700 border-amber-100',
+      OFFER: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+      REJECTED: 'bg-red-50 text-red-600 border-red-100',
+    };
+    return map[status] ?? 'bg-slate-100 text-slate-600';
   }
 
   scoreColor(score: number): string {

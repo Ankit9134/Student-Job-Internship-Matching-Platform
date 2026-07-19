@@ -132,6 +132,7 @@ public class ListingService {
             .roleType(listing.getRoleType())
             .requiredSkills(required)
             .niceToHaveSkills(niceToHave)
+            .createdAt(listing.getCreatedAt())
             .build();
     }
 
